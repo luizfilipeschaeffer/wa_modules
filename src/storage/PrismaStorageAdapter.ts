@@ -20,7 +20,12 @@ type PrismaClientLike = {
     };
     contact?: {
         upsert: (args: any) => Promise<any>;
-        findUnique: (args: any) => Promise<any>;
+        findFirst: (args: any) => Promise<any>;
+    };
+    groupProfile?: {
+        findMany: (args: any) => Promise<any[]>;
+        findFirst: (args: any) => Promise<any>;
+        upsert: (args: any) => Promise<any>;
     };
     $transaction: (args: any[]) => Promise<any>;
 }
@@ -230,7 +235,65 @@ export class PrismaStorageAdapter implements IStorage {
                 jsonData: JSON.stringify(message)
             },
             update: {
-                // Atualiza status se mudar, mas aqui simplificado
+                updatedAt: new Date()
+            }
+        });
+
+        // Atualiza cache do contato (pushName) quando disponível na mensagem
+        const pushName = message.pushName || (message as any).verifiedBizName;
+        if (this.prisma.contact && pushName && typeof pushName === 'string') {
+            const contactJid = participant && participant !== jid ? participant : jid;
+            if (contactJid && contactJid.endsWith('@s.whatsapp.net')) {
+                this.prisma.contact.upsert({
+                    where: { sessionId_id: { sessionId, id: contactJid } },
+                    create: { id: contactJid, sessionId, pushName, updatedAt: new Date() },
+                    update: { pushName, updatedAt: new Date() }
+                }).catch(() => {});
+            }
+        }
+    }
+
+    async saveContact(sessionId: string, contact: { id: string; name?: string; pushName?: string; profilePicture?: string }): Promise<void> {
+        if (!this.prisma.contact) return;
+        await this.prisma.contact.upsert({
+            where: { sessionId_id: { sessionId, id: contact.id } },
+            create: {
+                id: contact.id,
+                sessionId,
+                name: contact.name ?? null,
+                pushName: contact.pushName ?? contact.name ?? null,
+                profilePicture: contact.profilePicture ?? null,
+                updatedAt: new Date()
+            },
+            update: {
+                ...(contact.name != null && { name: contact.name }),
+                ...(contact.pushName != null && { pushName: contact.pushName }),
+                ...(contact.profilePicture != null && { profilePicture: contact.profilePicture }),
+                updatedAt: new Date()
+            }
+        });
+    }
+
+    async saveGroupProfile(sessionId: string, group: { id: string; name?: string; profilePicture?: string; isCommunity?: boolean; linkedParent?: string; isCommunityAnnounce?: boolean }): Promise<void> {
+        if (!this.prisma.groupProfile) return;
+        await this.prisma.groupProfile.upsert({
+            where: { sessionId_id: { sessionId, id: group.id } },
+            create: {
+                id: group.id,
+                sessionId,
+                name: group.name ?? null,
+                profilePicture: group.profilePicture ?? null,
+                isCommunity: group.isCommunity ?? false,
+                linkedParent: group.linkedParent ?? null,
+                isCommunityAnnounce: group.isCommunityAnnounce ?? false,
+                updatedAt: new Date()
+            },
+            update: {
+                ...(group.name != null && { name: group.name }),
+                ...(group.profilePicture != null && { profilePicture: group.profilePicture }),
+                ...(group.isCommunity != null && { isCommunity: group.isCommunity }),
+                ...(group.linkedParent != null && { linkedParent: group.linkedParent }),
+                ...(group.isCommunityAnnounce != null && { isCommunityAnnounce: group.isCommunityAnnounce }),
                 updatedAt: new Date()
             }
         });

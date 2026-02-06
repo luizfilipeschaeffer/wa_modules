@@ -1,18 +1,12 @@
 import { FastifyInstance } from 'fastify';
 import { WebhookController } from '../controllers/WebhookController';
 
-export async function webhookRoutes(fastify: FastifyInstance, options: { controller: WebhookController }) {
-    const { controller } = options;
+export async function webhookRoutes(fastify: FastifyInstance, options: { controller: WebhookController; authHook: (req: any, reply: any) => Promise<void> }) {
+    const { controller, authHook } = options;
 
-    // Protected Routes - Require JWT Authentication
+    // Protected Routes - JWT ou Token de API (validado no banco)
     fastify.register(async (protectedRoutes) => {
-        protectedRoutes.addHook('onRequest', async (request, reply) => {
-            try {
-                await request.jwtVerify();
-            } catch (err) {
-                reply.send(err);
-            }
-        });
+        protectedRoutes.addHook('onRequest', authHook);
 
         protectedRoutes.post<{ Params: { sessionId: string }, Body: { url: string, events: string[] } }>('/session/:sessionId/webhooks', {
             schema: {

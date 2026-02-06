@@ -1,0 +1,140 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - WA-Module</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Custom Checkbox Design */
+        .custom-checkbox input:checked + div {
+            background-color: #111827;
+            border-color: #111827;
+        }
+        .custom-checkbox input:checked + div svg {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen w-full flex items-center justify-center relative overflow-hidden selection:bg-gray-900 selection:text-white">
+
+    <!-- Background Decoration (Subtle Gradients) -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gray-200/40 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-gray-200/40 rounded-full blur-[120px]"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-[400px] px-4">
+        
+        <!-- Logo Area -->
+        <div class="flex justify-center mb-8">
+            <div class="w-10 h-10 bg-gray-900 text-white rounded-lg flex items-center justify-center text-base font-semibold tracking-tighter shadow-lg shadow-gray-200">
+                WA
+            </div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-200/50 p-8">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-xl font-semibold text-gray-900 tracking-tight mb-2">Welcome back</h1>
+                <p class="text-xs text-gray-500">Enter your credentials to access the workspace.</p>
+            </div>
+
+            <form action="#" class="space-y-4">
+                
+                <!-- Email Input -->
+                <div class="space-y-1.5">
+                    <label for="email" class="block text-xs font-medium text-gray-700">Email Address</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-gray-900 transition-colors">
+                            <iconify-icon icon="solar:letter-linear" width="16"></iconify-icon>
+                        </div>
+                        <input type="email" id="email" name="email" class="block w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all shadow-sm" placeholder="name@company.com" required="">
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label for="password" class="block text-xs font-medium text-gray-700">Password</label>
+                        <a href="#" class="text-[10px] font-medium text-gray-500 hover:text-gray-900 transition-colors">Forgot password?</a>
+                    </div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-gray-900 transition-colors">
+                            <iconify-icon icon="solar:lock-password-linear" width="16"></iconify-icon>
+                        </div>
+                        <input type="password" id="password" name="password" class="block w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all shadow-sm" placeholder="••••••••" required="">
+                        <!-- Eye Toggle -->
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer">
+                            <iconify-icon icon="solar:eye-linear" width="16"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center mt-2">
+                    <label class="custom-checkbox flex items-center cursor-pointer relative">
+                        <input type="checkbox" class="sr-only">
+                        <div class="w-4 h-4 border border-gray-300 rounded bg-white transition-all flex items-center justify-center text-white">
+                            <svg class="w-2.5 h-2.5 hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <span class="ml-2 text-xs text-gray-600 select-none">Remember me for 30 days</span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all mt-6">
+                    Sign in
+                    <iconify-icon icon="solar:arrow-right-linear" width="16"></iconify-icon>
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative mt-8 mb-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-100"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-[10px] text-gray-400 uppercase tracking-wider">Or continue with</span>
+                </div>
+            </div>
+
+            <!-- Social Logins -->
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" class="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-200 transition-all">
+                    <iconify-icon icon="devicon:google" width="14"></iconify-icon>
+                    <span class="text-xs">Google</span>
+                </button>
+                <button type="button" class="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-200 transition-all">
+                    <iconify-icon icon="devicon:github" width="14" class="opacity-80"></iconify-icon>
+                    <span class="text-xs">GitHub</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer Links -->
+        <p class="mt-8 text-center text-xs text-gray-500">
+            Don't have an account? 
+            <a href="#" class="font-medium text-gray-900 hover:text-gray-700 hover:underline underline-offset-2 decoration-gray-300">Create an account</a>
+        </p>
+
+        <!-- Copyright -->
+        <div class="mt-10 text-center flex items-center justify-center gap-4 text-[10px] text-gray-400">
+            <a href="#" class="hover:text-gray-600">Privacy Policy</a>
+            <span>•</span>
+            <a href="#" class="hover:text-gray-600">Terms of Service</a>
+        </div>
+
+    </div>
+
+
+</body></html>

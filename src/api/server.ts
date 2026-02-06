@@ -17,6 +17,11 @@ const start = async () => {
         console.log('   Login: admin@admin.com / admin');
         console.log('==================================================\n');
 
+        // Restaura sessões WhatsApp com credenciais salvas (não bloqueia o servidor)
+        (server as any).restoreSessions().catch((err: Error) => {
+            console.error('Error restoring WhatsApp sessions:', err.message);
+        });
+
     } catch (err) {
         console.error(err);
         process.exit(1);

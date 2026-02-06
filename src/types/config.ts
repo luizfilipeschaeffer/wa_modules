@@ -134,8 +134,10 @@ export interface IStorage {
     // Métodos opcionais de persistência de dados
     saveMessage?(sessionId: string, message: any): Promise<void>;
     getMessage?(sessionId: string, messageId: string): Promise<any | null>;
-    saveContact?(sessionId: string, contact: any): Promise<void>;
+    saveContact?(sessionId: string, contact: { id: string; name?: string; pushName?: string; profilePicture?: string }): Promise<void>;
     getContact?(sessionId: string, contactId: string): Promise<any | null>;
+    saveGroupProfile?(sessionId: string, group: { id: string; name?: string; profilePicture?: string; isCommunity?: boolean; linkedParent?: string; isCommunityAnnounce?: boolean }): Promise<void>;
+    getGroupProfile?(sessionId: string, groupId: string): Promise<any | null>;
 }
 
 export interface ICache {

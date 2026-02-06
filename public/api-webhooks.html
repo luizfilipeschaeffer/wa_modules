@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API & Webhooks — WA-Module</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 h-screen flex flex-col md:flex-row overflow-hidden selection:bg-gray-900 selection:text-white">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col justify-between shrink-0 z-20">
+        <div>
+            <div class="h-16 flex items-center px-6 border-b border-gray-100">
+                <a href="dashboard.html" class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gray-900 text-white rounded-md flex items-center justify-center text-sm font-semibold tracking-tighter">WA</div>
+                    <span class="font-semibold tracking-tight text-sm">WA-Module</span>
+                </a>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:smartphone-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Sessions
+                </a>
+                <a href="conversations.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:chat-round-dots-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Conversas
+                </a>
+                <a href="users.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Users
+                </a>
+                <a href="logs.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:history-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Logs
+                </a>
+                <a href="api-webhooks.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md bg-gray-50 text-gray-900">
+                    <iconify-icon icon="solar:code-circle-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    API & Webhooks
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-200"></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate" id="userName">User</p>
+                    <p class="text-xs text-gray-500 truncate" id="userEmail">—</p>
+                </div>
+                <button type="button" onclick="logout()" class="text-gray-400 hover:text-gray-900">
+                    <iconify-icon icon="solar:logout-2-linear" width="18"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+                <a href="dashboard.html" class="hover:text-gray-900">Dashboard</a>
+                <iconify-icon icon="solar:alt-arrow-right-linear" width="14"></iconify-icon>
+                <span class="font-medium text-gray-900">API & Webhooks</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/docs" target="_blank" class="bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-md shadow-sm flex items-center gap-2 transition-all">
+                    <iconify-icon icon="solar:document-text-linear" width="16"></iconify-icon>
+                    Open Swagger
+                </a>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+            <!-- API Reference -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <iconify-icon icon="solar:code-circle-linear" width="18"></iconify-icon>
+                        API Reference
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Base URL</label>
+                        <code id="apiBaseUrl" class="block px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm font-mono break-all"></code>
+                    </div>
+                    <p class="text-sm text-gray-600">Use the Swagger UI for full documentation and to try endpoints. All protected routes require the <strong>Authorization: Bearer &lt;token&gt;</strong> header (your login token).</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="/docs" target="_blank" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800">
+                            <iconify-icon icon="solar:document-text-linear" width="14"></iconify-icon>
+                            Swagger UI
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geração de Token de API -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <iconify-icon icon="solar:key-linear" width="18"></iconify-icon>
+                        Token de API
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">Gere um token JWT para autenticar requisições via webhook e API.</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-1 space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Tempo de expiração (opcional)</label>
+                                <select id="tokenExpiresIn" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900">
+                                    <option value="30d">30 dias</option>
+                                    <option value="90d">90 dias</option>
+                                    <option value="180d">6 meses</option>
+                                    <option value="365d" selected>1 ano</option>
+                                    <option value="730d">2 anos</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">O token expirará após o período selecionado. Após a expiração, será necessário gerar um novo token.</p>
+                            </div>
+                            <button type="button" onclick="generateApiToken()" class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm flex items-center justify-center gap-2 transition-all">
+                                <iconify-icon icon="solar:key-linear" width="16"></iconify-icon>
+                                Gerar Token
+                            </button>
+                        </div>
+                    </div>
+                    <div id="tokenResult" class="hidden space-y-2">
+                        <div class="bg-amber-50 border border-amber-200 rounded-md p-3">
+                            <p class="text-xs font-medium text-amber-800 mb-2">⚠️ Importante: Guarde este token em local seguro!</p>
+                            <p class="text-xs text-amber-700">Este token não será exibido novamente após fechar esta página. Use-o no header <code class="px-1 py-0.5 bg-amber-100 rounded">Authorization: Bearer &lt;token&gt;</code> nas suas requisições.</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Seu Token de API</label>
+                            <div class="flex items-center gap-2">
+                                <code id="generatedToken" class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-xs font-mono break-all"></code>
+                                <button type="button" onclick="copyToken(event)" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md border border-gray-200 flex items-center gap-1 transition-all" title="Copiar token">
+                                    <iconify-icon icon="solar:copy-linear" width="14"></iconify-icon>
+                                    Copiar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <p><strong>Como usar:</strong></p>
+                            <pre class="mt-1 p-2 bg-gray-900 text-gray-100 rounded text-xs overflow-x-auto"><code>Authorization: Bearer <span id="tokenExample">seu_token_aqui</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão para abrir o guia -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <iconify-icon icon="solar:list-check-linear" width="18"></iconify-icon>
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">Passo a passo: Webhooks e uso em aplicações</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Como cadastrar webhooks e integrar envio/recebimento de mensagens.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openGuideModal()" class="bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-md shadow-sm flex items-center gap-2 transition-all">
+                        <iconify-icon icon="solar:document-text-linear" width="16"></iconify-icon>
+                        Ver guia
+                    </button>
+                </div>
+            </div>
+
+            <!-- Webhooks by Session -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <iconify-icon icon="solar:link-circle-linear" width="18"></iconify-icon>
+                        Webhooks
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">Register URLs to receive events (message, connection, qr) per session.</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div id="webhooks-sessions-list">Loading sessions...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Add Webhook -->
+    <div id="modalAddWebhook" class="fixed inset-0 z-50 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-xl border border-gray-200 flex flex-col" onclick="event.stopPropagation()">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <iconify-icon icon="solar:link-circle-linear" width="16"></iconify-icon>
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900">Add Webhook</h3>
+                </div>
+                <button type="button" onclick="closeAddWebhookModal()" class="text-gray-400 hover:text-gray-600">
+                    <iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon>
+                </button>
+            </div>
+            <form id="formAddWebhook" class="p-5 space-y-4" onsubmit="submitWebhook(event)">
+                <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
+                    <span class="font-medium text-gray-700">Session:</span>
+                    <span id="addWebhookSessionId" class="font-mono"></span>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">URL</label>
+                    <input type="url" id="webhookUrl" required class="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900" placeholder="https://your-server.com/webhook">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-2">Events</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="webhookEvent" value="message" class="rounded border-gray-300">
+                            <span class="text-sm">message</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="webhookEvent" value="connection" class="rounded border-gray-300">
+                            <span class="text-sm">connection</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="webhookEvent" value="qr" class="rounded border-gray-300">
+                            <span class="text-sm">qr</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="webhookFormStatus" class="hidden p-3 rounded-md text-sm"></div>
+            </form>
+            <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 rounded-b-xl">
+                <button type="button" onclick="closeAddWebhookModal()" class="px-4 py-2 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-white">Cancel</button>
+                <button type="submit" form="formAddWebhook" class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md text-xs font-medium shadow-sm">Add Webhook</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Mensagem -->
+    <div id="messageModal" class="fixed inset-0 z-[60] bg-gray-900/20 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white w-full max-w-sm rounded-xl shadow-xl border border-gray-200 overflow-hidden" onclick="event.stopPropagation()">
+            <div id="messageModalHeader" class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                <iconify-icon id="messageModalIcon" width="20"></iconify-icon>
+                <h3 id="messageModalTitle" class="text-sm font-semibold text-gray-900">Message</h3>
+            </div>
+            <div class="px-5 py-4">
+                <p id="messageModalBody" class="text-sm text-gray-700"></p>
+            </div>
+            <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end rounded-b-xl">
+                <button type="button" onclick="closeMessageModal()" class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md text-xs font-medium">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmação -->
+    <div id="confirmModal" class="fixed inset-0 z-[60] bg-gray-900/20 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white w-full max-w-sm rounded-xl shadow-xl border border-gray-200 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 id="confirmModalTitle" class="text-sm font-semibold text-gray-900">Confirm</h3>
+            </div>
+            <div class="px-5 py-4">
+                <p id="confirmModalBody" class="text-sm text-gray-700"></p>
+            </div>
+            <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 rounded-b-xl">
+                <button type="button" id="confirmModalCancel" class="px-4 py-2 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-white">Cancel</button>
+                <button type="button" id="confirmModalConfirm" class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md text-xs font-medium">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Guia (tela cheia) -->
+    <div id="guideModal" class="fixed inset-0 z-[70] bg-white flex flex-col" style="display: none;">
+        <header class="h-16 border-b border-gray-200 flex items-center justify-between px-6 shrink-0 bg-white">
+            <h2 class="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <iconify-icon icon="solar:list-check-linear" width="20"></iconify-icon>
+                Passo a passo: Webhooks e uso em aplicações
+            </h2>
+            <button type="button" onclick="closeGuideModal()" class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Fechar">
+                <iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon>
+            </button>
+        </header>
+        <div class="flex-1 overflow-y-auto p-6 md:p-8 max-w-4xl mx-auto w-full">
+            <div class="space-y-8" id="guideModalContent">
+                <section>
+                    <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center">1</span>
+                        Cadastrar um novo webhook
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                        <li>Na seção <strong>Webhooks</strong> abaixo, localize a sessão desejada (ex.: o <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">sessionId</code> do WhatsApp que você usa).</li>
+                        <li>Clique em <strong>+ Add webhook</strong> e informe a <strong>URL</strong> do seu servidor (ex.: <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs break-all">https://sua-app.com/webhook</code>). A URL deve ser acessível pela internet (HTTPS recomendado).</li>
+                        <li>Marque os eventos que deseja receber: <strong>message</strong> (mensagens), <strong>connection</strong> (conexão/desconexão), <strong>qr</strong> (QR Code).</li>
+                        <li>Clique em <strong>Add Webhook</strong>. O webhook passará a receber POSTs nessa URL sempre que o evento ocorrer.</li>
+                    </ol>
+                    <p class="text-xs text-gray-500 mt-2">Você também pode registrar via API (requer token JWT):</p>
+                    <pre class="mt-2 p-4 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto"><code>POST <span id="guideBaseUrl1"></span>/session/<span class="text-amber-300">{sessionId}</span>/webhooks
+Authorization: Bearer &lt;seu_token&gt;
+Content-Type: application/json
+
+{
+  "url": "https://sua-app.com/webhook",
+  "events": ["message", "connection"]
+}</code></pre>
+                </section>
+                <section>
+                    <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center">2</span>
+                        Enviar mensagens pela API (aplicações de terceiros)
+                    </h4>
+                    <p class="text-sm text-gray-700 mb-3">Use o token JWT obtido no login. Todas as requisições devem incluir <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Authorization: Bearer &lt;token&gt;</code>.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-600 mb-1">Mensagem de texto</p>
+                            <pre class="p-4 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto"><code>POST <span id="guideBaseUrl2"></span>/session/<span class="text-amber-300">{sessionId}</span>/message/text
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "to": "5511999999999",
+  "message": "Olá! Mensagem enviada pela API."
+}</code></pre>
+                            <p class="text-xs text-gray-500 mt-1">O número pode ser com ou sem <code class="px-1 py-0.5 bg-gray-100 rounded">@s.whatsapp.net</code>; a API normaliza automaticamente.</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-600 mb-1">Mensagem com anexo (imagem, vídeo, áudio, documento)</p>
+                            <pre class="p-4 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto"><code>POST <span id="guideBaseUrl3"></span>/session/<span class="text-amber-300">{sessionId}</span>/message/media
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "to": "5511999999999",
+  "fileBase64": "&lt;conteúdo_do_arquivo_em_base64&gt;",
+  "caption": "Legenda opcional",
+  "filename": "documento.pdf",
+  "mimetype": "application/pdf"
+}</code></pre>
+                            <p class="text-xs text-gray-500 mt-1">Campos obrigatórios: <code class="px-1 py-0.5 bg-gray-100 rounded">to</code>, <code class="px-1 py-0.5 bg-gray-100 rounded">fileBase64</code>. Opcionais: <code class="px-1 py-0.5 bg-gray-100 rounded">caption</code>, <code class="px-1 py-0.5 bg-gray-100 rounded">filename</code>, <code class="px-1 py-0.5 bg-gray-100 rounded">mimetype</code> (ex.: image/jpeg, video/mp4, audio/ogg).</p>
+                        </div>
+                    </div>
+                </section>
+                <section>
+                    <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center">3</span>
+                        Ouvir mensagens dos usuários via webhook
+                    </h4>
+                    <p class="text-sm text-gray-700 mb-3">Quando você cadastra um webhook com o evento <strong>message</strong>, seu servidor recebe um POST na URL configurada sempre que chegar uma mensagem (ou atualização) na sessão.</p>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 mb-3">
+                        <li><strong>Método:</strong> POST</li>
+                        <li><strong>Headers enviados:</strong> <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Content-Type: application/json</code>, <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">X-Event-Type: message</code>, <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">X-Session-ID: &lt;sessionId&gt;</code></li>
+                        <li><strong>Corpo (JSON):</strong> <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">event</code>, <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">sessionId</code>, <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">timestamp</code>, <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">data</code></li>
+                    </ul>
+                    <p class="text-xs font-medium text-gray-600 mb-1">Exemplo de payload para evento <code class="px-1 py-0.5 bg-gray-100 rounded">message</code>:</p>
+                    <pre class="p-4 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto"><code>{
+  "event": "message",
+  "sessionId": "uuid-da-sessao",
+  "timestamp": "2025-02-06T12:00:00.000Z",
+  "data": {
+    "messages": [
+      {
+        "key": {
+          "remoteJid": "5511999999999@s.whatsapp.net",
+          "fromMe": false,
+          "id": "MSG_ID"
+        },
+        "message": {
+          "conversation": "Texto enviado pelo usuário"
+        },
+        "messageTimestamp": "1234567890"
+      }
+    ],
+    "type": "notify"
+  }
+}</code></pre>
+                    <p class="text-xs text-gray-500 mt-2">Em <code class="px-1 py-0.5 bg-gray-100 rounded">data.messages</code> vêm as mensagens (Baileys). Para texto use <code class="px-1 py-0.5 bg-gray-100 rounded">message.conversation</code>; para mídia, <code class="px-1 py-0.5 bg-gray-100 rounded">message.imageMessage</code>, <code class="px-1 py-0.5 bg-gray-100 rounded">message.videoMessage</code>, etc. Responda com status <strong>2xx</strong> para o servidor considerar entrega ok.</p>
+                    <p class="text-xs font-medium text-gray-600 mt-3 mb-1">Exemplo em Node.js (receber e processar):</p>
+                    <pre class="p-4 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto"><code>app.post('/webhook', (req, res) => {
+  const event = req.headers['x-event-type'];
+  const sessionId = req.headers['x-session-id'];
+  const { event: e, sessionId: sid, timestamp, data } = req.body;
+
+  if (event === 'message' && data?.messages) {
+    for (const msg of data.messages) {
+      if (msg.key?.fromMe) continue;
+      const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text;
+      const from = msg.key?.remoteJid;
+      console.log(`[${sessionId}] De ${from}: ${text}`);
+      // Responder via API: POST .../session/${sessionId}/message/text
+    }
+  }
+  res.status(200).send('OK');
+});</code></pre>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token) { window.location.href = '/'; throw new Error('No auth'); }
+
+        document.getElementById('userName').textContent = user.name || user.email || 'User';
+        document.getElementById('userEmail').textContent = user.email || '—';
+
+        const apiBase = window.location.origin;
+        document.getElementById('apiBaseUrl').textContent = apiBase;
+
+        function closeGuideModal() {
+            document.getElementById('guideModal').style.display = 'none';
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', guideModalEscape);
+        }
+        function guideModalEscape(e) {
+            if (e.key === 'Escape') closeGuideModal();
+        }
+        function openGuideModal() {
+            ['guideBaseUrl1', 'guideBaseUrl2', 'guideBaseUrl3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = apiBase;
+            });
+            document.getElementById('guideModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            document.addEventListener('keydown', guideModalEscape);
+        }
+
+        function showMessage(text, type) {
+            type = type || 'info';
+            const el = document.getElementById('messageModal');
+            const header = document.getElementById('messageModalHeader');
+            const icon = document.getElementById('messageModalIcon');
+            header.className = 'px-5 py-4 border-b border-gray-100 flex items-center gap-2 ';
+            if (type === 'error') { header.classList.add('bg-red-50'); icon.setAttribute('icon', 'solar:danger-circle-linear'); icon.className = 'text-red-500'; }
+            else if (type === 'success') { header.classList.add('bg-emerald-50'); icon.setAttribute('icon', 'solar:check-circle-linear'); icon.className = 'text-emerald-500'; }
+            else { header.classList.add('bg-blue-50'); icon.setAttribute('icon', 'solar:info-circle-linear'); icon.className = 'text-blue-500'; }
+            document.getElementById('messageModalBody').textContent = text;
+            el.style.display = 'flex';
+            el.onclick = (e) => { if (e.target === el) closeMessageModal(); };
+        }
+        function closeMessageModal() { document.getElementById('messageModal').style.display = 'none'; }
+
+        function showConfirm(title, body, confirmLabel, onConfirm, onCancel) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalBody').textContent = body;
+            document.getElementById('confirmModalConfirm').textContent = confirmLabel || 'Confirm';
+            const modalEl = document.getElementById('confirmModal');
+            modalEl.style.display = 'flex';
+            const closeConfirm = () => { modalEl.style.display = 'none'; };
+            document.getElementById('confirmModalCancel').onclick = () => { closeConfirm(); if (onCancel) onCancel(); };
+            document.getElementById('confirmModalConfirm').onclick = () => { closeConfirm(); if (onConfirm) onConfirm(); };
+            modalEl.onclick = (e) => { if (e.target === modalEl) { closeConfirm(); if (onCancel) onCancel(); } };
+        }
+
+        async function fetchAPI(url, options = {}) {
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const res = await fetch(url, options);
+            if (res.status === 401) { logout(); return res; }
+            return res;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        let addWebhookSessionId = null;
+
+        async function loadWebhooksSection() {
+            const container = document.getElementById('webhooks-sessions-list');
+            try {
+                const res = await fetchAPI('/sessions');
+                const sessions = await res.json();
+                const list = Array.isArray(sessions) ? sessions : [];
+
+                if (list.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">No sessions. Create a session from the Dashboard first.</p>';
+                    return;
+                }
+
+                let html = '';
+                for (const session of list) {
+                    const webhooks = await loadWebhooksForSession(session.sessionId);
+                    html += `
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                                <span class="font-mono text-sm font-medium text-gray-900">${escapeHtml(session.sessionId)}</span>
+                                <button type="button" onclick="openAddWebhookModal('${escapeHtml(session.sessionId)}')" class="text-xs font-medium text-gray-900 hover:bg-gray-200 px-2 py-1 rounded">+ Add webhook</button>
+                            </div>
+                            <div class="p-4">
+                                ${webhooks.length === 0
+                                    ? '<p class="text-xs text-gray-500">No webhooks for this session.</p>'
+                                    : '<ul class="space-y-2">' + webhooks.map(w => `
+                                        <li class="flex items-center justify-between gap-2 text-sm py-2 border-b border-gray-100 last:border-0">
+                                            <div class="min-w-0 flex-1">
+                                                <span class="font-mono text-xs text-gray-700 break-all">${escapeHtml(w.url)}</span>
+                                                <span class="text-xs text-gray-500 ml-2">${(w.events || []).join(', ')}</span>
+                                            </div>
+                                            <button type="button" onclick="deleteWebhook('${escapeHtml(session.sessionId)}','${escapeHtml(w.id)}')" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded shrink-0" title="Remove"><iconify-icon icon="solar:trash-bin-trash-linear" width="16"></iconify-icon></button>
+                                        </li>
+                                    `).join('') + '</ul>'}
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<p class="text-sm text-red-600">Error loading sessions.</p>';
+            }
+        }
+
+        async function loadWebhooksForSession(sessionId) {
+            try {
+                const res = await fetchAPI(`/session/${sessionId}/webhooks`);
+                if (!res.ok) return [];
+                const data = await res.json();
+                return Array.isArray(data) ? data : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function openAddWebhookModal(sessionId) {
+            addWebhookSessionId = sessionId;
+            document.getElementById('addWebhookSessionId').textContent = sessionId;
+            document.getElementById('formAddWebhook').reset();
+            document.querySelectorAll('input[name="webhookEvent"]').forEach(c => { c.checked = false; });
+            document.getElementById('webhookFormStatus').classList.add('hidden');
+            document.getElementById('modalAddWebhook').style.display = 'flex';
+        }
+
+        function closeAddWebhookModal() {
+            document.getElementById('modalAddWebhook').style.display = 'none';
+            addWebhookSessionId = null;
+        }
+
+        async function submitWebhook(e) {
+            e.preventDefault();
+            const url = document.getElementById('webhookUrl').value.trim();
+            const events = Array.from(document.querySelectorAll('input[name="webhookEvent"]:checked')).map(el => el.value);
+            const statusEl = document.getElementById('webhookFormStatus');
+
+            if (events.length === 0) {
+                statusEl.textContent = 'Select at least one event.';
+                statusEl.className = 'p-3 rounded-md text-sm bg-amber-50 text-amber-800';
+                statusEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                statusEl.classList.add('hidden');
+                const res = await fetchAPI(`/session/${addWebhookSessionId}/webhooks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, events })
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || 'Failed to add webhook');
+                }
+                closeAddWebhookModal();
+                loadWebhooksSection();
+            } catch (err) {
+                statusEl.textContent = err.message || 'Error adding webhook';
+                statusEl.className = 'p-3 rounded-md text-sm bg-red-50 text-red-800';
+                statusEl.classList.remove('hidden');
+            }
+        }
+
+        function deleteWebhook(sessionId, webhookId) {
+            showConfirm('Remove webhook', 'Remove this webhook?', 'Remove', async () => {
+                try {
+                    const res = await fetchAPI(`/session/${sessionId}/webhooks/${webhookId}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error('Delete failed');
+                    loadWebhooksSection();
+                } catch (err) {
+                    showMessage(err.message || 'Error removing webhook', 'error');
+                }
+            });
+        }
+
+        async function generateApiToken() {
+            const expiresIn = document.getElementById('tokenExpiresIn').value;
+            const resultDiv = document.getElementById('tokenResult');
+            const tokenCode = document.getElementById('generatedToken');
+            const tokenExample = document.getElementById('tokenExample');
+
+            try {
+                const res = await fetchAPI('/auth/generate-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expiresIn })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || 'Erro ao gerar token');
+                }
+
+                const data = await res.json();
+                tokenCode.textContent = data.token;
+                tokenExample.textContent = data.token;
+                resultDiv.classList.remove('hidden');
+                
+                // Scroll para o resultado
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (err) {
+                showMessage(err.message || 'Erro ao gerar token', 'error');
+            }
+        }
+
+        function copyToken(e) {
+            const tokenCode = document.getElementById('generatedToken');
+            const token = tokenCode.textContent.trim();
+            
+            if (!token) {
+                showMessage('Nenhum token para copiar', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(token).then(() => {
+                const btn = (e?.target || event?.target)?.closest('button') || document.querySelector('button[onclick="copyToken()"]');
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<iconify-icon icon="solar:check-circle-linear" width="14"></iconify-icon> Copiado!';
+                    btn.classList.add('bg-emerald-100', 'text-emerald-700');
+                    btn.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('bg-emerald-100', 'text-emerald-700');
+                        btn.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                    }, 2000);
+                }
+            }).catch(() => {
+                showMessage('Erro ao copiar token', 'error');
+            });
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        loadWebhooksSection();
+    </script>
+</body>
+</html>

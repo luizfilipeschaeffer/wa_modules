@@ -41,18 +41,35 @@ model Message {
   @@index([timestamp])
 }
 
-// Contatos
+// Contatos (1:1) - nome e foto de perfil em cache
 model Contact {
-  id             String   @id // JID
+  id             String   @id // JID (ex: 5511999999999@s.whatsapp.net)
   sessionId      String
   name           String?
   pushName       String?
-  profilePicture String?
+  profilePicture String?  // URL da foto
   isBlocked      Boolean  @default(false)
   
   updatedAt      DateTime @updatedAt
 
   @@unique([sessionId, id])
+  @@index([sessionId])
+}
+
+// Grupos e comunidades - nome e foto em cache + origem para filtros
+model GroupProfile {
+  id                  String   @id // JID do grupo (ex: 120363xxx@g.us)
+  sessionId           String
+  name                String?
+  profilePicture      String?  // URL da foto
+  isCommunity         Boolean  @default(false)
+  isCommunityAnnounce Boolean  @default(false) // canal de anúncios da comunidade
+  linkedParent        String?  // JID da comunidade quando é grupo dentro de comunidade
+  
+  updatedAt           DateTime @updatedAt
+
+  @@unique([sessionId, id])
+  @@index([sessionId])
 }
 
 
@@ -72,13 +89,50 @@ model Webhook {
 
 // Usuários do Sistema
 model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String   // Hash
+  name        String?
+  role        String   @default("admin") // admin, user
+  createdById String?  // usuário que criou este (para perfil user ver só os que criou)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sessions    UserSession[]
+  apiTokens   ApiToken[]
+  createdBy   User?    @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers User[]  @relation("UserCreatedBy")
+}
+
+// Tokens de API para autenticação (webhooks, integrações). Armazenamos apenas o hash.
+model ApiToken {
   id        String   @id @default(uuid())
-  email     String   @unique
-  password  String   // Hash
-  name      String?
-  role      String   @default("admin") // admin, user
+  userId    String
+  tokenHash String   @unique // SHA-256 do token (o token em si é exibido só na criação)
+  name      String?  // Nome/descrição opcional (ex: "Financas webhook")
+  expiresAt DateTime
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+// Vincula sessões WhatsApp aos usuários (cada usuário vê e usa apenas suas sessões)
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String
+  sessionId String   // UUID da sessão WhatsApp
+
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sessionId])
+  @@index([userId])
+  @@index([sessionId])
 }
 

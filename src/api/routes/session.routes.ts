@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { SessionController } from '../controllers/SessionController';
 
-export async function sessionRoutes(fastify: FastifyInstance, options: { controller: SessionController }) {
-    const { controller } = options;
+export async function sessionRoutes(fastify: FastifyInstance, options: { controller: SessionController; authHook: (req: any, reply: any) => Promise<void> }) {
+    const { controller, authHook } = options;
 
     // Public endpoint - QR Code (needs to be accessible from browser without auth header)
     fastify.get<{ Params: { sessionId: string } }>('/session/:sessionId/qr-code', {
@@ -16,15 +16,9 @@ export async function sessionRoutes(fastify: FastifyInstance, options: { control
         }
     }, controller.getQrCode.bind(controller));
 
-    // Protected Routes - Require JWT Authentication
+    // Protected Routes - JWT ou Token de API (validado no banco)
     fastify.register(async (protectedRoutes) => {
-        protectedRoutes.addHook('onRequest', async (request, reply) => {
-            try {
-                await request.jwtVerify();
-            } catch (err) {
-                reply.send(err);
-            }
-        });
+        protectedRoutes.addHook('onRequest', authHook);
 
         protectedRoutes.post<{ Params: { sessionId: string } }>('/session/:sessionId/connect', {
             schema: {
@@ -160,5 +154,67 @@ export async function sessionRoutes(fastify: FastifyInstance, options: { control
                 }
             }
         }, controller.deleteSession.bind(controller));
+
+        protectedRoutes.get<{ Params: { sessionId: string }; Querystring: { jids?: string } }>('/session/:sessionId/profiles', {
+            schema: {
+                description: 'Retorna perfis em cache (nome/foto) para vários JIDs. Não exige sessão ativa.',
+                tags: ['Session'],
+                security: [{ bearerAuth: [] }],
+                params: { type: 'object', properties: { sessionId: { type: 'string' } } },
+                querystring: {
+                    type: 'object',
+                    properties: { jids: { type: 'string', description: 'JIDs separados por vírgula' } }
+                },
+                response: { 200: { type: 'object', additionalProperties: true } }
+            }
+        }, controller.getBulkProfiles.bind(controller));
+
+        protectedRoutes.get<{ Params: { sessionId: string; jid: string } }>('/session/:sessionId/contact/:jid', {
+            schema: {
+                description: 'Retorna nome e foto de perfil do contato (1:1)',
+                tags: ['Session'],
+                security: [{ bearerAuth: [] }],
+                params: {
+                    type: 'object',
+                    properties: {
+                        sessionId: { type: 'string' },
+                        jid: { type: 'string', description: 'JID do contato (ex: 5511999999999 ou 5511999999999@s.whatsapp.net)' }
+                    }
+                },
+                response: {
+                    200: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string', nullable: true },
+                            profilePictureUrl: { type: 'string', nullable: true }
+                        }
+                    }
+                }
+            }
+        }, controller.getContactInfo.bind(controller));
+
+        protectedRoutes.get<{ Params: { sessionId: string; groupJid: string } }>('/session/:sessionId/group/:groupJid', {
+            schema: {
+                description: 'Retorna nome e foto do grupo',
+                tags: ['Session'],
+                security: [{ bearerAuth: [] }],
+                params: {
+                    type: 'object',
+                    properties: {
+                        sessionId: { type: 'string' },
+                        groupJid: { type: 'string', description: 'JID do grupo (ex: 120363xxx@g.us)' }
+                    }
+                },
+                response: {
+                    200: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            profilePictureUrl: { type: 'string', nullable: true }
+                        }
+                    }
+                }
+            }
+        }, controller.getGroupInfo.bind(controller));
     });
 }

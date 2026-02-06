@@ -2,6 +2,9 @@
  * Tipos relacionados a grupos
  */
 
+/** Origem do chat para filtros na interface: pessoa, grupo standalone, comunidade ou grupo dentro de comunidade */
+export type ChatOrigin = 'personal' | 'group' | 'community' | 'group_in_community';
+
 export interface Group {
     id: string;
     name: string;
@@ -12,6 +15,10 @@ export interface Group {
     admins: string[];
     isCommunity: boolean;
     isAnnouncement: boolean;
+    /** JID da comunidade pai quando o grupo pertence a uma comunidade */
+    linkedParent?: string;
+    /** Se é o canal de anúncios da comunidade */
+    isCommunityAnnounce?: boolean;
     profilePicture?: string;
     inviteCode?: string;
 }

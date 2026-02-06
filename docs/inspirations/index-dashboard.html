@@ -1,0 +1,405 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WA-Module Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d1d5db;
+        }
+        
+        /* Checkbox Hack for Modal */
+        #modal-connect:checked ~ .modal-overlay-connect { display: flex; }
+        #modal-send:checked ~ .modal-overlay-send { display: flex; }
+
+        /* Custom Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #10b981;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #10b981;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 h-screen flex flex-col md:flex-row overflow-hidden selection:bg-gray-900 selection:text-white">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col justify-between shrink-0 z-20">
+        <div>
+            <!-- Logo -->
+            <div class="h-16 flex items-center px-6 border-b border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gray-900 text-white rounded-md flex items-center justify-center text-sm font-semibold tracking-tighter">
+                        WA
+                    </div>
+                    <span class="font-semibold tracking-tight text-sm">WA-Module</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="p-4 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md bg-gray-50 text-gray-900">
+                    <iconify-icon icon="solar:smartphone-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Sessions
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Users
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:history-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Logs
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:code-circle-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    API &amp; Webhooks
+                </a>
+            </nav>
+        </div>
+
+        <!-- User Profile -->
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-200"></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">Admin User</p>
+                    <p class="text-xs text-gray-500 truncate">admin@wamodule.com</p>
+                </div>
+                <button class="text-gray-400 hover:text-gray-900">
+                    <iconify-icon icon="solar:logout-2-linear" width="18"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+                <span class="hover:text-gray-900 cursor-pointer">Dashboard</span>
+                <iconify-icon icon="solar:alt-arrow-right-linear" width="14"></iconify-icon>
+                <span class="font-medium text-gray-900">Sessions</span>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex items-center gap-3">
+                <a href="#" class="text-gray-500 hover:text-gray-900 flex items-center gap-1 text-xs font-medium px-2">
+                    <iconify-icon icon="solar:document-text-linear" width="16"></iconify-icon>
+                    Docs
+                </a>
+                <!-- Label triggers the modal checkbox -->
+                <label for="modal-connect" class="cursor-pointer bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium px-4 py-2 rounded-md shadow-sm flex items-center gap-2 transition-all">
+                    <iconify-icon icon="solar:add-circle-linear" width="16"></iconify-icon>
+                    New Session
+                </label>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Active Sessions</span>
+                        <iconify-icon icon="solar:check-circle-linear" class="text-emerald-500" width="18"></iconify-icon>
+                    </div>
+                    <div class="text-2xl font-semibold tracking-tight text-gray-900">4</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Messages (24h)</span>
+                        <iconify-icon icon="solar:plain-text-linear" class="text-blue-500" width="18"></iconify-icon>
+                    </div>
+                    <div class="text-2xl font-semibold tracking-tight text-gray-900">1,284</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">System Status</span>
+                        <iconify-icon icon="solar:server-linear" class="text-gray-500" width="18"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-sm font-medium text-gray-700">Operational</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Table -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <h3 class="text-sm font-semibold text-gray-900">All Sessions</h3>
+                    <div class="relative w-full sm:w-64">
+                        <iconify-icon icon="solar:magnifer-linear" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16"></iconify-icon>
+                        <input type="text" placeholder="Search ID or phone..." class="w-full pl-9 pr-4 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder-gray-400">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-50 text-gray-500 text-xs font-medium uppercase tracking-wide">
+                            <tr>
+                                <th class="px-6 py-3">Session ID</th>
+                                <th class="px-6 py-3">Phone Number</th>
+                                <th class="px-6 py-3">Status</th>
+                                <th class="px-6 py-3">Last Activity</th>
+                                <th class="px-6 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <!-- Row 1: Active -->
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4 font-medium text-gray-900">sales-team-01</td>
+                                <td class="px-6 py-4 text-gray-600 font-mono text-xs">+55 48 99999-9999</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs">2 min ago</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <label for="modal-send" class="cursor-pointer p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md" title="Send Message">
+                                            <iconify-icon icon="solar:plain-text-linear" width="16"></iconify-icon>
+                                        </label>
+                                        <button class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md" title="Logs">
+                                            <iconify-icon icon="solar:list-linear" width="16"></iconify-icon>
+                                        </button>
+                                        <button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md" title="Logout">
+                                            <iconify-icon icon="solar:logout-2-linear" width="16"></iconify-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2: Disconnected -->
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4 font-medium text-gray-900">support-main</td>
+                                <td class="px-6 py-4 text-gray-600 font-mono text-xs">-</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                        Waiting QR
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs">Created 5 min ago</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md" title="Connect QR">
+                                            <iconify-icon icon="solar:qr-code-linear" width="16"></iconify-icon>
+                                        </button>
+                                        <button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md" title="Delete">
+                                            <iconify-icon icon="solar:trash-bin-trash-linear" width="16"></iconify-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3: Active -->
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4 font-medium text-gray-900">marketing-bot-2</td>
+                                <td class="px-6 py-4 text-gray-600 font-mono text-xs">+55 11 98888-7777</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs">4 hours ago</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <label for="modal-send" class="cursor-pointer p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md" title="Send Message">
+                                            <iconify-icon icon="solar:plain-text-linear" width="16"></iconify-icon>
+                                        </label>
+                                        <button class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md" title="Logs">
+                                            <iconify-icon icon="solar:list-linear" width="16"></iconify-icon>
+                                        </button>
+                                        <button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md" title="Logout">
+                                            <iconify-icon icon="solar:logout-2-linear" width="16"></iconify-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 4: Error/Inactive -->
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4 font-medium text-gray-900">finance-alert</td>
+                                <td class="px-6 py-4 text-gray-600 font-mono text-xs">+55 21 97777-6666</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
+                                        Disconnected
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 text-xs">Yesterday</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md" title="Reconnect">
+                                            <iconify-icon icon="solar:restart-linear" width="16"></iconify-icon>
+                                        </button>
+                                        <button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md" title="Delete">
+                                            <iconify-icon icon="solar:trash-bin-trash-linear" width="16"></iconify-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                    <span class="text-xs text-gray-500">Showing 1 to 4 of 4 entries</span>
+                    <div class="flex gap-1">
+                        <button class="px-2 py-1 rounded text-gray-400 cursor-not-allowed">
+                            <iconify-icon icon="solar:alt-arrow-left-linear" width="16"></iconify-icon>
+                        </button>
+                        <button class="px-2 py-1 rounded text-gray-600 hover:bg-gray-200">
+                            <iconify-icon icon="solar:alt-arrow-right-linear" width="16"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 
+    ========================================
+    MODALS (Controlled via Checkbox Hack)
+    ======================================== 
+    -->
+
+    <!-- 1. Connect / QR Modal -->
+    <input type="checkbox" id="modal-connect" class="hidden peer">
+    <div class="modal-overlay-connect hidden fixed inset-0 z-50 bg-gray-900/20 backdrop-blur-sm items-center justify-center p-4">
+        <!-- Close overlay trigger -->
+        <label for="modal-connect" class="absolute inset-0 cursor-default"></label>
+        
+        <div class="bg-white w-full max-w-sm rounded-xl shadow-xl border border-gray-200 relative overflow-hidden flex flex-col items-center p-6 text-center">
+            
+            <h3 class="text-base font-semibold text-gray-900 mb-1">Scan QR Code</h3>
+            <p class="text-xs text-gray-500 mb-6 max-w-[240px]">Open WhatsApp on your phone, go to Linked Devices and scan the code below.</p>
+            
+            <!-- QR Placeholder -->
+            <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-6 relative group cursor-pointer">
+                <!-- Simulated QR -->
+                <div class="w-48 h-48 bg-gray-900 grid grid-cols-6 grid-rows-6 gap-0.5 p-1 mix-blend-multiply opacity-90">
+                    <div class="col-span-2 row-span-2 bg-white"></div>
+                    <div class="col-span-2 row-span-2 col-start-5 bg-white"></div>
+                    <div class="col-span-2 row-span-2 row-start-5 bg-white"></div>
+                    <!-- Random bits -->
+                    <div class="bg-white col-start-3 row-start-2"></div>
+                    <div class="bg-white col-start-4 row-start-3"></div>
+                    <div class="bg-white col-start-2 row-start-5"></div>
+                    <div class="bg-white col-start-5 row-start-4"></div>
+                </div>
+                
+                <!-- Loading State overlay (hidden by default, shown for effect) -->
+                <div class="absolute inset-0 flex items-center justify-center bg-white/90 hidden">
+                    <div class="flex flex-col items-center">
+                        <iconify-icon icon="solar:refresh-circle-linear" class="animate-spin text-gray-400 mb-2" width="24"></iconify-icon>
+                        <span class="text-xs font-medium text-gray-500">Generating...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full flex gap-3">
+                <label for="modal-connect" class="flex-1 px-4 py-2 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-gray-50 cursor-pointer">Cancel</label>
+                <!-- Simulated Action -->
+                <button class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-md text-xs font-medium shadow-sm opacity-50 cursor-not-allowed">Waiting Scan...</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Send Message Modal -->
+    <input type="checkbox" id="modal-send" class="hidden peer">
+    <div class="modal-overlay-send hidden fixed inset-0 z-50 bg-gray-900/20 backdrop-blur-sm items-center justify-center p-4">
+        <!-- Close overlay trigger -->
+        <label for="modal-send" class="absolute inset-0 cursor-default"></label>
+
+        <div class="bg-white w-full max-w-md rounded-xl shadow-xl border border-gray-200 relative flex flex-col">
+            <!-- Header -->
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <iconify-icon icon="solar:plain-text-linear" width="14"></iconify-icon>
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900">Send Message</h3>
+                </div>
+                <label for="modal-send" class="text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon>
+                </label>
+            </div>
+
+            <!-- Body -->
+            <div class="p-5 space-y-4">
+                <!-- Session Readonly -->
+                <div class="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
+                    <span class="font-medium text-gray-700">From:</span>
+                    <span>sales-team-01</span>
+                    <span class="text-gray-300">|</span>
+                    <span class="font-mono">+55 48 99999-9999</span>
+                </div>
+
+                <!-- Phone Input -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">To Phone Number</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-mono">+</span>
+                        <input type="text" value="55" class="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 font-mono placeholder-gray-300">
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">Include country code (e.g. 55 for Brazil).</p>
+                </div>
+
+                <!-- Text Area -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Message</label>
+                    <textarea rows="4" class="w-full p-3 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 resize-none placeholder-gray-400" placeholder="Type your message here..."></textarea>
+                </div>
+
+                <!-- Attachment (Custom File Input) -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Attachment (Optional)</label>
+                    <label class="flex items-center justify-center w-full px-4 py-3 border border-gray-200 border-dashed rounded-md cursor-pointer hover:bg-gray-50 transition-colors gap-2 text-gray-500">
+                        <iconify-icon icon="solar:paperclip-linear" width="16"></iconify-icon>
+                        <span class="text-xs">Click to upload media</span>
+                        <input type="file" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 rounded-b-xl">
+                <label for="modal-send" class="px-4 py-2 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-white transition-all cursor-pointer shadow-sm">Cancel</label>
+                <button class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md text-xs font-medium shadow-sm flex items-center gap-2 transition-all">
+                    Send Message
+                    <iconify-icon icon="solar:plain-text-linear" width="14"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</body></html>

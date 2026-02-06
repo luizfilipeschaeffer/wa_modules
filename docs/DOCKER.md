@@ -42,7 +42,7 @@ docker-compose ps
 ## 🗂️ Estrutura dos Serviços
 
 ### PostgreSQL (`postgres`)
-- **Porta**: 5432
+- **Porta no host**: 5433 (evita conflito com Postgres na 5432)
 - **Database**: whatsapp_db
 - **User**: postgres
 - **Password**: postgres
@@ -119,6 +119,40 @@ docker exec -i wa_postgres psql -U postgres whatsapp_db < backup.sql
 ```
 
 ## 🔍 Troubleshooting
+
+### Não consigo conectar ao PostgreSQL (cliente SQL ou aplicação no host)
+
+O compose expõe o Postgres na porta **5433** no host (para não conflitar com Postgres instalado na 5432).
+
+**Use sempre estes dados para conectar do seu PC (cliente SQL ou projeto):**
+
+| Campo     | Valor        |
+|----------|--------------|
+| Host     | `127.0.0.1`  |
+| Porta    | `5433`       |
+| Usuário  | `postgres`   |
+| Senha    | `postgres`   |
+| Database | `whatsapp_db`|
+
+**Se ainda falhar:**
+
+1. **Recrear o container** (para aplicar o binding em 127.0.0.1):
+   ```bash
+   cd docker
+   docker compose down
+   docker compose up -d
+   ```
+
+2. **Verificar se a porta está em uso** por outro programa (ex.: PostgreSQL instalado no Windows):
+   ```powershell
+   Get-NetTCPConnection -LocalPort 5433
+   ```
+   Se outro processo usar a 5433, altere no `docker-compose.yml` para outra porta (ex.: `5434:5432`).
+
+3. **Testar conexão dentro do container:**
+   ```bash
+   docker exec -it wa_postgres psql -U postgres -d whatsapp_db -c "SELECT 1;"
+   ```
 
 ### Container não inicia
 ```bash

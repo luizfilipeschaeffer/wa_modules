@@ -4,7 +4,7 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: 'postgresql://postgres:postgres@localhost:5432/whatsapp_db'
+            url: 'postgresql://postgres:postgres@127.0.0.1:5433/whatsapp_db'
         }
     }
 });

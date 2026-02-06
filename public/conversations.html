@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversas — WA-Module</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 h-screen flex flex-col md:flex-row overflow-hidden selection:bg-gray-900 selection:text-white">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col justify-between shrink-0 z-20">
+        <div>
+            <div class="h-16 flex items-center px-6 border-b border-gray-100">
+                <a href="dashboard.html" class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gray-900 text-white rounded-md flex items-center justify-center text-sm font-semibold tracking-tighter">WA</div>
+                    <span class="font-semibold tracking-tight text-sm">WA-Module</span>
+                </a>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:smartphone-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Sessions
+                </a>
+                <a href="conversations.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md bg-gray-50 text-gray-900">
+                    <iconify-icon icon="solar:chat-round-dots-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Conversas
+                </a>
+                <a href="users.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Users
+                </a>
+                <a href="logs.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:history-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Logs
+                </a>
+                <a href="api-webhooks.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:code-circle-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    API & Webhooks
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-200"></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate" id="userName">User</p>
+                    <p class="text-xs text-gray-500 truncate" id="userEmail">—</p>
+                </div>
+                <button type="button" onclick="logout()" class="text-gray-400 hover:text-gray-900">
+                    <iconify-icon icon="solar:logout-2-linear" width="18"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main: Header + Chat layout -->
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-3">
+                <h1 class="text-sm font-semibold tracking-tight text-gray-900">Conversas</h1>
+                <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-medium border border-gray-200">Beta</span>
+            </div>
+            <button type="button" onclick="openLinkDeviceModal()" class="flex items-center gap-2 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium shadow-sm hover:bg-gray-800 transition-colors">
+                <iconify-icon icon="solar:qr-code-linear" width="14"></iconify-icon>
+                Vincular dispositivo
+            </button>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Chat list sidebar -->
+            <div class="w-80 border-r border-gray-200 bg-white flex flex-col shrink-0">
+                <div class="p-4 border-b border-gray-100">
+                    <label class="block text-xs font-medium text-gray-500 mb-2">Sessão</label>
+                    <select id="sessionSelect" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-gray-900">
+                        <option value="">Selecione uma sessão</option>
+                    </select>
+                </div>
+                <div class="p-4 border-b border-gray-100 space-y-3">
+                    <div class="flex gap-1 p-1 bg-gray-100 rounded-lg overflow-x-auto no-scrollbar" role="tablist">
+                        <button type="button" id="tabTodos" role="tab" aria-selected="true" class="tab-category shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors bg-white text-gray-900 shadow-sm">Todos</button>
+                        <button type="button" id="tabConversas" role="tab" aria-selected="false" class="tab-category shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors text-gray-500 hover:text-gray-700">Conversas</button>
+                        <button type="button" id="tabGrupos" role="tab" aria-selected="false" class="tab-category shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors text-gray-500 hover:text-gray-700">Grupos</button>
+                        <button type="button" id="tabComunidades" role="tab" aria-selected="false" class="tab-category shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors text-gray-500 hover:text-gray-700">Comunidades</button>
+                        <button type="button" id="tabGruposComunidade" role="tab" aria-selected="false" class="tab-category shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors text-gray-500 hover:text-gray-700">Em comunidades</button>
+                    </div>
+                    <div class="relative">
+                        <iconify-icon icon="solar:magnifer-linear" class="absolute left-3 top-2.5 text-gray-400" width="16"></iconify-icon>
+                        <input type="text" id="searchChats" placeholder="Buscar conversas..." class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 placeholder-gray-400">
+                    </div>
+                </div>
+                <div id="chatList" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+                    <p class="text-xs text-gray-500 p-4 text-center">Selecione uma sessão para ver as conversas.</p>
+                </div>
+            </div>
+
+            <!-- Active chat view -->
+            <div class="flex-1 flex flex-col bg-white min-w-0">
+                <div id="chatPlaceholder" class="flex-1 flex items-center justify-center text-gray-400 text-sm p-8">
+                    Selecione uma conversa ou uma sessão para começar.
+                </div>
+                <div id="chatPanel" class="flex-1 flex flex-col hidden">
+                <div class="h-16 border-b border-gray-100 flex items-center justify-between px-6 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div id="chatAvatar" class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-medium">?</div>
+                        <div class="min-w-0">
+                            <h2 id="chatTitle" class="text-xs font-semibold text-gray-900 truncate">—</h2>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>
+                                <span id="chatSubtitle" class="text-[10px] text-gray-400">WhatsApp</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    <div id="messagesArea" class="flex-1 bg-gray-50 p-6 overflow-y-auto space-y-6 min-h-0">
+                    </div>
+                    <div class="p-4 bg-white border-t border-gray-100 shrink-0">
+                        <form id="sendForm" class="flex items-end gap-2" onsubmit="sendMessageFromConversation(event)">
+                            <button type="button" class="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all" title="Anexo">
+                                <iconify-icon icon="solar:paperclip-linear" width="20"></iconify-icon>
+                            </button>
+                            <div class="flex-1 bg-gray-50 border border-gray-200 rounded-xl flex items-center px-3 py-2.5 focus-within:ring-1 focus-within:ring-gray-900 focus-within:border-gray-900 transition-all">
+                                <input type="text" id="messageInput" placeholder="Digite uma mensagem..." class="bg-transparent border-none w-full text-xs text-gray-900 focus:outline-none placeholder-gray-400">
+                            </div>
+                            <button type="submit" class="p-2.5 bg-gray-900 text-white rounded-xl shadow-sm hover:bg-gray-800 transition-all flex items-center justify-center">
+                                <iconify-icon icon="solar:plain-3-linear" width="20"></iconify-icon>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Link Device (New Session) - estilo index.messenge.html -->
+    <div id="qrModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/20 backdrop-blur-[2px] p-4" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl shadow-gray-300 w-full max-w-[650px] overflow-hidden flex flex-col md:flex-row border border-gray-200 relative">
+            <button type="button" onclick="closeQrModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors z-10">
+                <iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon>
+            </button>
+            <div class="p-8 flex-1">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gray-900 text-white rounded-lg flex items-center justify-center text-xs font-semibold tracking-tighter">WA</div>
+                    <span class="text-sm font-semibold tracking-tight text-gray-900">Vincular dispositivo</span>
+                </div>
+                <div class="space-y-6">
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-medium text-gray-900">Use o WhatsApp no computador</h3>
+                        <ol class="space-y-3 mt-4">
+                            <li class="flex gap-3 items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-600">1</span>
+                                <span class="text-xs text-gray-600 leading-5">Abra o WhatsApp no seu celular</span>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-600">2</span>
+                                <span class="text-xs text-gray-600 leading-5">Toque em <strong>Menu</strong> no Android ou <strong>Ajustes</strong> no iPhone</span>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-600">3</span>
+                                <span class="text-xs text-gray-600 leading-5">Toque em <strong>Aparelhos conectados</strong> e depois <strong>Conectar um aparelho</strong></span>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-[10px] font-medium text-gray-600">4</span>
+                                <span class="text-xs text-gray-600 leading-5">Aponte o celular para esta tela para capturar o código</span>
+                            </li>
+                        </ol>
+                    </div>
+                    <a href="#" class="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 hover:text-green-700 transition-colors mt-2">
+                        Precisa de ajuda?
+                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+            <div class="bg-gray-50 border-l border-gray-100 p-8 flex flex-col items-center justify-center relative min-h-[280px]">
+                <div id="qrContainer" class="bg-white p-2 rounded-xl border border-gray-200 shadow-sm relative group cursor-pointer">
+                    <div class="w-48 h-48 flex items-center justify-center text-gray-400 text-sm">
+                        Carregando QR...
+                    </div>
+                    <div id="qrReloadOverlay" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg cursor-pointer hidden">
+                        <div class="w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg mb-2">
+                            <iconify-icon icon="solar:restart-linear" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-xs font-medium text-gray-900">Clique para atualizar QR</span>
+                    </div>
+                </div>
+                <p id="qrSessionId" class="text-xs text-gray-500 mt-4"></p>
+                <div class="mt-6 flex items-center gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <div class="w-4 h-4 border border-gray-300 rounded bg-white group-hover:border-gray-400 transition-all flex items-center justify-center">
+                            <iconify-icon icon="solar:check-read-linear" class="text-gray-900 w-3 h-3"></iconify-icon>
+                        </div>
+                        <span class="text-xs text-gray-500 group-hover:text-gray-700 select-none">Manter conectado</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token) { window.location.href = '/'; throw new Error('No auth'); }
+
+        document.getElementById('userName').textContent = user.name || user.email || 'User';
+        document.getElementById('userEmail').textContent = user.email || '—';
+
+        let sessions = [];
+        let chatListData = [];
+        let currentSessionId = null;
+        let currentChatJid = null;
+        let currentChatIsGroup = false;
+        let currentCategory = 'todos';
+        let allMessages = [];
+        let qrPollInterval = null;
+        let qrConnectionCheck = null;
+        let currentQrSessionId = null;
+
+        async function fetchAPI(url, options = {}) {
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const res = await fetch(url, options);
+            if (res.status === 401) { logout(); return res; }
+            return res;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function jidToPhone(jid) {
+            if (!jid) return '—';
+            return String(jid).replace(/@.*/, '').trim();
+        }
+
+        function isGroupJid(jid) {
+            return jid && String(jid).endsWith('@g.us');
+        }
+
+        function phoneToInitials(phone) {
+            const p = jidToPhone(phone);
+            if (p.length >= 2) return p.slice(-2);
+            return p || '?';
+        }
+
+        function chatDisplayName(chat) {
+            if (!chat) return '—';
+            if (isGroupJid(chat.jid)) {
+                const id = jidToPhone(chat.jid);
+                return chat.name || (id.length > 10 ? 'Grupo ' + id.slice(0, 8) + '…' : 'Grupo ' + id);
+            }
+            return chat.name || jidToPhone(chat.jid);
+        }
+
+        async function fetchContactInfo(sessionId, jid, isGroup) {
+            try {
+                const encoded = encodeURIComponent(jid);
+                const path = isGroup
+                    ? `/session/${sessionId}/group/${encoded}`
+                    : `/session/${sessionId}/contact/${encoded}`;
+                const res = await fetchAPI(path);
+                if (!res.ok) return {};
+                return await res.json();
+            } catch (_) {
+                return {};
+            }
+        }
+
+        const CONCURRENT_FETCH = 6;
+        async function applyCachedProfiles() {
+            if (!currentSessionId || !chatListData.length) return;
+            try {
+                const jidsParam = chatListData.map(c => encodeURIComponent(c.jid)).join(',');
+                const res = await fetchAPI(`/session/${currentSessionId}/profiles?jids=${jidsParam}`);
+                if (!res.ok) return;
+                const profiles = await res.json();
+                for (const c of chatListData) {
+                    const p = profiles[c.jid];
+                    if (p) {
+                        if (p.name != null) c.name = p.name;
+                        if (p.profilePictureUrl != null) c.profilePictureUrl = p.profilePictureUrl;
+                        if (typeof p.isCommunity === 'boolean') c.isCommunity = p.isCommunity;
+                        if (p.chatOrigin) c.chatOrigin = p.chatOrigin;
+                    }
+                }
+            } catch (_) { /* cache opcional */ }
+        }
+
+        async function enrichChatListWithNamesAndPhotos() {
+            if (!currentSessionId || !chatListData.length) return;
+            for (let i = 0; i < chatListData.length; i += CONCURRENT_FETCH) {
+                const batch = chatListData.slice(i, i + CONCURRENT_FETCH);
+                await Promise.all(batch.map(async (c) => {
+                    const info = await fetchContactInfo(currentSessionId, c.jid, c.isGroup);
+                    c.name = info.name || c.name;
+                    c.profilePictureUrl = info.profilePictureUrl || c.profilePictureUrl;
+                    if (c.isGroup) {
+                        if (typeof info.isCommunity === 'boolean') c.isCommunity = info.isCommunity;
+                        if (info.chatOrigin) c.chatOrigin = info.chatOrigin;
+                    } else if (!c.chatOrigin) c.chatOrigin = 'personal';
+                }));
+                renderChatList(chatListData);
+            }
+        }
+
+        async function loadSessions() {
+            const res = await fetchAPI('/sessions');
+            const data = await res.json();
+            sessions = Array.isArray(data) ? data.filter(s => (s.status || '').toLowerCase() === 'active') : [];
+            const sel = document.getElementById('sessionSelect');
+            sel.innerHTML = '<option value="">Selecione uma sessão</option>' + sessions.map(s => {
+                const label = s.phoneNumber ? `${s.sessionId} (${s.phoneNumber})` : s.sessionId;
+                return `<option value="${escapeHtml(s.sessionId)}">${escapeHtml(label)}</option>`;
+            }).join('');
+            if (currentSessionId && sessions.some(s => s.sessionId === currentSessionId)) sel.value = currentSessionId;
+        }
+
+        document.getElementById('sessionSelect').addEventListener('change', async function () {
+            currentSessionId = this.value || null;
+            currentChatJid = null;
+            chatListData = [];
+            document.getElementById('chatPanel').classList.add('hidden');
+            document.getElementById('chatPlaceholder').classList.remove('hidden');
+            if (!currentSessionId) {
+                document.getElementById('chatList').innerHTML = '<p class="text-xs text-gray-500 p-4 text-center">Selecione uma sessão para ver as conversas.</p>';
+                return;
+            }
+            await loadChatList();
+        });
+
+        async function loadChatList() {
+            const listEl = document.getElementById('chatList');
+            listEl.innerHTML = '<p class="text-xs text-gray-500 p-4 text-center">Carregando conversas...</p>';
+            try {
+                const res = await fetchAPI(`/session/${currentSessionId}/messages?limit=300`);
+                const messages = await res.json();
+                allMessages = Array.isArray(messages) ? messages : [];
+                const bySender = {};
+                allMessages.forEach(m => {
+                    const jid = m.fromMe ? (m.chatId || m.sender) : (m.sender || m.chatId);
+                    if (!jid) return;
+                    const isGroup = isGroupJid(jid);
+                    const key = isGroup ? jid : String(jid).replace(/@.*/, '').trim();
+                    if (!key) return;
+                    if (!bySender[key]) bySender[key] = { jid: jid, isGroup: isGroup, chatOrigin: isGroup ? undefined : 'personal', last: m, messages: [] };
+                    bySender[key].messages.push(m);
+                    if (new Date(m.timestamp) > new Date(bySender[key].last.timestamp)) bySender[key].last = m;
+                });
+                chatListData = Object.values(bySender).sort((a, b) => new Date(b.last.timestamp) - new Date(a.last.timestamp));
+                await applyCachedProfiles();
+                renderChatList(chatListData);
+                enrichChatListWithNamesAndPhotos();
+            } catch (err) {
+                listEl.innerHTML = '<p class="text-xs text-red-500 p-4 text-center">Erro ao carregar conversas.</p>';
+            }
+        }
+
+        function getChatOrigin(c) {
+            if (c.chatOrigin) return c.chatOrigin;
+            if (!c.isGroup) return 'personal';
+            if (c.isCommunity) return 'community';
+            return 'group';
+        }
+
+        function chatsByCategory(chats) {
+            if (currentCategory === 'todos') return chats;
+            if (currentCategory === 'conversas') return chats.filter(c => getChatOrigin(c) === 'personal');
+            if (currentCategory === 'grupos') return chats.filter(c => getChatOrigin(c) === 'group');
+            if (currentCategory === 'comunidades') return chats.filter(c => getChatOrigin(c) === 'community');
+            if (currentCategory === 'group_in_community') return chats.filter(c => getChatOrigin(c) === 'group_in_community');
+            return chats;
+        }
+
+        function renderChatList(chats) {
+            const byCategory = chatsByCategory(chats);
+            const search = document.getElementById('searchChats').value.trim().toLowerCase();
+            const filtered = search ? byCategory.filter(c => jidToPhone(c.jid).includes(search) || (c.name || '').toLowerCase().includes(search) || (c.last.body || '').toLowerCase().includes(search)) : byCategory;
+            const listEl = document.getElementById('chatList');
+            if (filtered.length === 0) {
+                const emptyMsg = { todos: 'Nenhuma conversa ainda.', conversas: 'Nenhuma conversa 1:1.', grupos: 'Nenhum grupo.', comunidades: 'Nenhuma comunidade.', group_in_community: 'Nenhum grupo em comunidade.' };
+                const msg = emptyMsg[currentCategory] || emptyMsg.todos;
+                listEl.innerHTML = `<p class="text-xs text-gray-500 p-4 text-center">${msg}</p>`;
+                return;
+            }
+            const individuals = filtered.filter(c => getChatOrigin(c) === 'personal');
+            const groupsStandalone = filtered.filter(c => getChatOrigin(c) === 'group');
+            const communities = filtered.filter(c => getChatOrigin(c) === 'community');
+            const groupsInCommunity = filtered.filter(c => getChatOrigin(c) === 'group_in_community');
+            const groups = filtered.filter(c => c.isGroup);
+            const colors = ['bg-indigo-100 text-indigo-600', 'bg-orange-100 text-orange-600', 'bg-emerald-100 text-emerald-600', 'bg-amber-100 text-amber-600'];
+            const renderItem = (c, i) => {
+                const name = chatDisplayName(c);
+                const initials = c.isGroup ? '' : (jidToPhone(c.jid).length >= 2 ? jidToPhone(c.jid).slice(-2) : '?');
+                const timeStr = formatMessageTime(c.last.timestamp);
+                const preview = (c.last.body || `[${c.last.type || 'mídia'}]`).substring(0, 40) + ((c.last.body || '').length > 40 ? '…' : '');
+                const active = currentChatJid && (c.jid === currentChatJid || (!c.isGroup && jidToPhone(c.jid) === jidToPhone(currentChatJid)));
+                const senderLabel = c.isGroup && !c.last.fromMe ? (jidToPhone(c.last.sender) + ': ') : '';
+                const hasPhoto = c.profilePictureUrl;
+                const avatarBg = !hasPhoto ? (c.isGroup ? 'bg-violet-100 text-violet-600' : colors[i % colors.length]) : '';
+                const avatarInner = hasPhoto
+                    ? `<img src="${escapeHtml(c.profilePictureUrl)}" alt="" class="w-full h-full rounded-full object-cover avatar-img" onerror="this.classList.add('!hidden');var n=this.nextElementSibling;if(n)n.classList.remove('hidden');" /><span class="avatar-fallback hidden w-full h-full rounded-full ${c.isGroup ? 'bg-violet-100 text-violet-600' : colors[i % colors.length]} flex items-center justify-center text-xs font-medium">${c.isGroup ? '<iconify-icon icon="solar:users-group-rounded-linear" width="18"></iconify-icon>' : escapeHtml(initials)}</span>`
+                    : (c.isGroup ? '<iconify-icon icon="solar:users-group-rounded-linear" width="18"></iconify-icon>' : escapeHtml(initials));
+                return `
+                    <div class="p-3 ${active ? 'bg-gray-50 border border-gray-200/50' : 'hover:bg-gray-50'} rounded-xl cursor-pointer flex gap-3 items-start transition-all" data-jid="${escapeHtml(c.jid)}" data-is-group="${c.isGroup ? '1' : '0'}">
+                        <div class="w-10 h-10 rounded-full overflow-hidden ${avatarBg} flex-shrink-0 flex items-center justify-center font-medium text-xs relative">
+                            ${avatarInner}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline mb-0.5">
+                                <h3 class="text-xs font-semibold text-gray-900 truncate flex items-center gap-1">
+                                    ${escapeHtml(name)}
+                                    ${getChatOrigin(c) === 'group' ? '<span class="shrink-0 px-1.5 py-0.5 rounded bg-violet-100 text-violet-600 text-[9px] font-medium">Grupo</span>' : ''}
+                                    ${getChatOrigin(c) === 'community' ? '<span class="shrink-0 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-medium">Comunidade</span>' : ''}
+                                    ${getChatOrigin(c) === 'group_in_community' ? '<span class="shrink-0 px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[9px] font-medium">Em comunidade</span>' : ''}
+                                </h3>
+                                <span class="text-[10px] text-gray-400 shrink-0">${timeStr}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-500 truncate">${escapeHtml(senderLabel)}${escapeHtml(preview)}</p>
+                        </div>
+                    </div>
+                `;
+            };
+            let html = '';
+            const showSections = currentCategory === 'todos';
+            if (showSections) {
+                if (individuals.length > 0) {
+                    html += '<p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider px-3 py-1.5">Conversas</p>';
+                    html += individuals.map((c, i) => renderItem(c, i)).join('');
+                }
+                if (groupsStandalone.length > 0) {
+                    html += '<p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider px-3 py-1.5 mt-2">Grupos</p>';
+                    html += groupsStandalone.map((c, i) => renderItem(c, i)).join('');
+                }
+                if (communities.length > 0) {
+                    html += '<p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider px-3 py-1.5 mt-2">Comunidades</p>';
+                    html += communities.map((c, i) => renderItem(c, i)).join('');
+                }
+                if (groupsInCommunity.length > 0) {
+                    html += '<p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider px-3 py-1.5 mt-2">Grupos em comunidades</p>';
+                    html += groupsInCommunity.map((c, i) => renderItem(c, i)).join('');
+                }
+            } else {
+                html += filtered.map((c, i) => renderItem(c, i)).join('');
+            }
+            listEl.innerHTML = html;
+            listEl.querySelectorAll('[data-jid]').forEach(el => {
+                el.addEventListener('click', () => selectChat(el.dataset.jid, el.dataset.isGroup === '1'));
+            });
+        }
+
+        document.getElementById('searchChats').addEventListener('input', () => renderChatList(chatListData));
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.tab-category').forEach((el) => {
+                const id = el.id;
+                const isActive = (id === 'tabTodos' && cat === 'todos') || (id === 'tabConversas' && cat === 'conversas') || (id === 'tabGrupos' && cat === 'grupos') || (id === 'tabComunidades' && cat === 'comunidades') || (id === 'tabGruposComunidade' && cat === 'group_in_community');
+                el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                el.className = 'tab-category shrink-0 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors ' + (isActive ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700');
+            });
+            renderChatList(chatListData);
+        }
+        document.getElementById('tabTodos').addEventListener('click', () => setCategory('todos'));
+        document.getElementById('tabConversas').addEventListener('click', () => setCategory('conversas'));
+        document.getElementById('tabGrupos').addEventListener('click', () => setCategory('grupos'));
+        document.getElementById('tabComunidades').addEventListener('click', () => setCategory('comunidades'));
+        document.getElementById('tabGruposComunidade').addEventListener('click', () => setCategory('group_in_community'));
+
+        function formatMessageTime(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            const now = new Date();
+            if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            if (now - d < 7 * 24 * 60 * 60 * 1000) return d.toLocaleDateString('pt-BR', { weekday: 'short' });
+            return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        }
+
+        function selectChat(jid, isGroup) {
+            currentChatJid = jid;
+            currentChatIsGroup = !!isGroup;
+            document.getElementById('chatPlaceholder').classList.add('hidden');
+            document.getElementById('chatPanel').classList.remove('hidden');
+            const chat = chatListData.find(c => c.jid === currentChatJid || (!c.isGroup && jidToPhone(c.jid) === jidToPhone(currentChatJid)));
+            const title = chat ? chatDisplayName(chat) : (currentChatIsGroup ? ('Grupo ' + jidToPhone(currentChatJid)) : jidToPhone(currentChatJid));
+            document.getElementById('chatTitle').textContent = title;
+            const avatarEl = document.getElementById('chatAvatar');
+            const subtitleEl = document.getElementById('chatSubtitle');
+            const photoUrl = chat && chat.profilePictureUrl;
+            avatarEl.classList.add('overflow-hidden');
+            if (photoUrl) {
+                avatarEl.className = 'w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0';
+                avatarEl.innerHTML = `<img src="${escapeHtml(photoUrl)}" alt="" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><span class="hidden w-full h-full rounded-full ${currentChatIsGroup ? 'bg-violet-100 text-violet-600' : 'bg-indigo-100 text-indigo-600'} flex items-center justify-center text-xs font-medium">${currentChatIsGroup ? '<iconify-icon icon="solar:users-group-rounded-linear" width="14"></iconify-icon>' : escapeHtml(phoneToInitials(currentChatJid))}</span>`;
+            } else if (currentChatIsGroup) {
+                avatarEl.innerHTML = '<iconify-icon icon="solar:users-group-rounded-linear" width="14"></iconify-icon>';
+                avatarEl.className = 'w-8 h-8 rounded-full overflow-hidden bg-violet-100 flex items-center justify-center text-violet-600 text-xs font-medium';
+                subtitleEl.textContent = 'Grupo • WhatsApp';
+            } else {
+                avatarEl.textContent = phoneToInitials(currentChatJid);
+                avatarEl.className = 'w-8 h-8 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-medium';
+                subtitleEl.textContent = 'WhatsApp';
+            }
+            subtitleEl.textContent = currentChatIsGroup ? 'Grupo • WhatsApp' : 'WhatsApp';
+            const phoneNum = jidToPhone(currentChatJid);
+            const msgs = chat ? chat.messages : allMessages.filter(m => {
+                if (currentChatIsGroup) return m.chatId === currentChatJid;
+                const s = m.fromMe ? m.chatId : (m.sender || m.chatId);
+                return s && (s === currentChatJid || jidToPhone(s) === phoneNum);
+            });
+            renderMessages(msgs, currentChatIsGroup);
+            renderChatList(chatListData);
+        }
+
+        function renderMessages(msgs, isGroupMode) {
+            const area = document.getElementById('messagesArea');
+            const sorted = [...(msgs || [])].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            if (sorted.length === 0) {
+                area.innerHTML = '<p class="text-center text-gray-400 text-xs">Nenhuma mensagem ainda.</p>';
+                return;
+            }
+            let lastDate = '';
+            area.innerHTML = sorted.map(m => {
+                const d = new Date(m.timestamp);
+                const dateStr = d.toLocaleDateString('pt-BR');
+                const timeStr = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const dateSep = dateStr !== lastDate ? (lastDate = dateStr, `<div class="flex justify-center"><span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md font-medium">${dateStr}</span></div>`) : '';
+                const body = m.body || `[${m.type || 'mídia'}]`;
+                if (m.fromMe) {
+                    return `${dateSep}<div class="flex flex-col items-end gap-1 max-w-[80%] ml-auto">
+                        ${isGroupMode ? '<span class="text-[10px] text-gray-500 font-medium">Você</span>' : ''}
+                        <div class="bg-gray-900 text-white p-3 rounded-2xl rounded-tr-none shadow-md text-xs leading-relaxed">${escapeHtml(body)}</div>
+                        <div class="flex items-center gap-1"><span class="text-[10px] text-gray-400">${timeStr}</span><iconify-icon icon="solar:check-read-linear" class="text-blue-500" width="12"></iconify-icon></div>
+                    </div>`;
+                }
+                const senderPhone = m.sender ? jidToPhone(m.sender) : '';
+                const senderLabel = isGroupMode ? `<span class="text-[10px] text-gray-500 font-medium mb-0.5 block">${escapeHtml(senderPhone)}</span>` : '';
+                return `${dateSep}<div class="flex gap-3 max-w-[80%]">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600 text-[9px] font-bold mt-1">${escapeHtml(phoneToInitials(m.sender))}</div>
+                    <div class="flex-1 min-w-0">
+                        ${senderLabel}
+                        <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-xs text-gray-600 leading-relaxed">${escapeHtml(body)}</div>
+                        <span class="text-[10px] text-gray-400 mt-1 block pl-1">${timeStr}</span>
+                    </div>
+                </div>`;
+            }).join('');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function sendMessageFromConversation(e) {
+            e.preventDefault();
+            const input = document.getElementById('messageInput');
+            const text = (input.value || '').trim();
+            if (!text || !currentSessionId || !currentChatJid) return;
+            const to = currentChatIsGroup ? currentChatJid : jidToPhone(currentChatJid);
+            fetchAPI(`/session/${currentSessionId}/message/text`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to, message: text })
+            }).then(res => {
+                if (res.ok) {
+                    input.value = '';
+                    loadChatList().then(() => {
+                        const chat = chatListData.find(c => c.jid === currentChatJid);
+                        if (chat) selectChat(chat.jid, chat.isGroup);
+                    });
+                }
+            }).catch(() => {});
+        }
+
+        function openLinkDeviceModal() {
+            fetchAPI('/sessions', { method: 'POST' }).then(async res => {
+                const data = await res.json();
+                if (data.sessionId) {
+                    currentQrSessionId = data.sessionId;
+                    document.getElementById('qrSessionId').textContent = 'Sessão: ' + data.sessionId;
+                    document.getElementById('qrModal').style.display = 'flex';
+                    pollQrCode(data.sessionId);
+                }
+            }).catch(() => {});
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').style.display = 'none';
+            if (qrPollInterval) clearInterval(qrPollInterval);
+            if (qrConnectionCheck) clearInterval(qrConnectionCheck);
+            currentQrSessionId = null;
+            loadSessions();
+        }
+
+        function pollQrCode(sessionId) {
+            const container = document.getElementById('qrContainer');
+            let attempts = 0;
+            const maxAttempts = 30;
+            const doPoll = () => {
+                fetchAPI(`/session/${sessionId}/qr-code`).then(res => res.text()).then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const img = doc.querySelector('img');
+                    if (img && img.src) {
+                        container.innerHTML = `<img src="${img.src}" class="w-48 h-48 rounded-lg" alt="QR Code">`;
+                        const overlay = document.getElementById('qrReloadOverlay');
+                        overlay.classList.remove('hidden');
+                        overlay.onclick = () => { container.innerHTML = '<div class="w-48 h-48 flex items-center justify-center text-gray-400 text-sm">Carregando...</div>'; overlay.classList.add('hidden'); pollQrCode(sessionId); };
+                        if (qrPollInterval) clearInterval(qrPollInterval);
+                        qrConnectionCheck = setInterval(() => {
+                            fetchAPI(`/session/${sessionId}/status`).then(r => r.json()).then(status => {
+                                if (status.state === 'open') {
+                                    clearInterval(qrConnectionCheck);
+                                    container.innerHTML = '<div class="w-48 h-48 flex flex-col items-center justify-center text-emerald-600 text-center p-4"><iconify-icon icon="solar:check-circle-linear" width="48"></iconify-icon><p class="text-sm font-medium mt-2">Conectado!</p></div>';
+                                    loadSessions();
+                                    setTimeout(closeQrModal, 2500);
+                                }
+                            }).catch(() => {});
+                        }, 2000);
+                        return;
+                    }
+                    attempts++;
+                    if (attempts < maxAttempts) setTimeout(doPoll, 1000);
+                    else container.innerHTML = '<p class="text-red-600 text-sm p-4">Timeout. Tente novamente.</p>';
+                }).catch(() => { attempts++; if (attempts < maxAttempts) setTimeout(doPoll, 1000); });
+            };
+            doPoll();
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        loadSessions();
+    </script>
+</body>
+</html>

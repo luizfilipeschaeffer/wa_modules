@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs — WA-Module</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 h-screen flex flex-col md:flex-row overflow-hidden selection:bg-gray-900 selection:text-white">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col justify-between shrink-0 z-20">
+        <div>
+            <div class="h-16 flex items-center px-6 border-b border-gray-100">
+                <a href="dashboard.html" class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gray-900 text-white rounded-md flex items-center justify-center text-sm font-semibold tracking-tighter">WA</div>
+                    <span class="font-semibold tracking-tight text-sm">WA-Module</span>
+                </a>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:smartphone-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Sessions
+                </a>
+                <a href="conversations.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:chat-round-dots-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Conversas
+                </a>
+                <a href="users.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Users
+                </a>
+                <a href="logs.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md bg-gray-50 text-gray-900">
+                    <iconify-icon icon="solar:history-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    Logs
+                </a>
+                <a href="api-webhooks.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    <iconify-icon icon="solar:code-circle-linear" width="18" stroke-width="1.5"></iconify-icon>
+                    API & Webhooks
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-200"></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate" id="userName">User</p>
+                    <p class="text-xs text-gray-500 truncate" id="userEmail">—</p>
+                </div>
+                <button type="button" onclick="logout()" class="text-gray-400 hover:text-gray-900">
+                    <iconify-icon icon="solar:logout-2-linear" width="18"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+                <a href="dashboard.html" class="hover:text-gray-900">Dashboard</a>
+                <iconify-icon icon="solar:alt-arrow-right-linear" width="14"></iconify-icon>
+                <span class="font-medium text-gray-900">Logs</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/docs" target="_blank" class="text-gray-500 hover:text-gray-900 flex items-center gap-1 text-xs font-medium px-2">
+                    <iconify-icon icon="solar:document-text-linear" width="16"></iconify-icon>
+                    Docs
+                </a>
+                <button type="button" onclick="loadLogs()" class="text-gray-500 hover:text-gray-900 flex items-center gap-1 text-xs font-medium px-2">
+                    <iconify-icon icon="solar:refresh-linear" width="16"></iconify-icon>
+                    Refresh
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap">
+                    <h3 class="text-sm font-semibold text-gray-900">Activity Logs</h3>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="filterSession" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900">
+                            <option value="">All sessions</option>
+                        </select>
+                        <select id="filterLevel" class="text-xs border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900">
+                            <option value="">All levels</option>
+                            <option value="info">Info</option>
+                            <option value="warn">Warning</option>
+                            <option value="error">Error</option>
+                        </select>
+                        <input type="text" id="searchLogs" placeholder="Search message..." class="text-xs border border-gray-200 rounded-md pl-3 pr-4 py-1.5 w-48 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder-gray-400">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-gray-500 text-xs font-medium uppercase tracking-wide">
+                            <tr>
+                                <th class="px-6 py-3">Time</th>
+                                <th class="px-6 py-3">Session</th>
+                                <th class="px-6 py-3">Level</th>
+                                <th class="px-6 py-3">Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody" class="divide-y divide-gray-100">
+                            <tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                    <span class="text-xs text-gray-500" id="pagination-info">—</span>
+                </div>
+            </div>
+            <div id="logs-empty-hint" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 hidden">
+                <p class="font-medium text-gray-700 mb-1">No log API configured</p>
+                <p>When a <code class="bg-gray-200 px-1 rounded">/logs</code> or similar endpoint is available, logs will appear here. You can filter by session and level.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token) { window.location.href = '/'; throw new Error('No auth'); }
+
+        document.getElementById('userName').textContent = user.name || user.email || 'User';
+        document.getElementById('userEmail').textContent = user.email || '—';
+
+        let allLogs = [];
+        let sessionsForFilter = [];
+
+        async function fetchAPI(url, options = {}) {
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const res = await fetch(url, options);
+            if (res.status === 401) { logout(); return res; }
+            return res;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function levelBadge(level) {
+            const l = (level || 'info').toLowerCase();
+            if (l === 'error') return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">Error</span>';
+            if (l === 'warn') return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Warning</span>';
+            return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">Info</span>';
+        }
+
+        function renderLogs(logs, sessionFilter, levelFilter, search) {
+            const tbody = document.getElementById('logs-tbody');
+            let filtered = logs;
+            if (sessionFilter) filtered = filtered.filter(l => (l.sessionId || '') === sessionFilter);
+            if (levelFilter) filtered = filtered.filter(l => (l.level || 'info').toLowerCase() === levelFilter);
+            if (search) {
+                const q = search.toLowerCase();
+                filtered = filtered.filter(l => (l.message || '').toLowerCase().includes(q) || (l.sessionId || '').toLowerCase().includes(q));
+            }
+
+            document.getElementById('pagination-info').textContent = filtered.length === 0 ? 'No entries' : `Showing 1 to ${filtered.length} of ${filtered.length} entries`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">No logs to display.</td></tr>';
+                document.getElementById('logs-empty-hint').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('logs-empty-hint').classList.add('hidden');
+            tbody.innerHTML = filtered.map(l => {
+                const time = l.timestamp ? new Date(l.timestamp).toLocaleString() : '—';
+                const session = l.sessionId || '—';
+                const msg = (l.message || '').substring(0, 200) + ((l.message || '').length > 200 ? '…' : '');
+                return `
+                    <tr class="hover:bg-gray-50/50">
+                        <td class="px-6 py-3 text-gray-500 text-xs whitespace-nowrap">${time}</td>
+                        <td class="px-6 py-3 font-mono text-xs text-gray-700">${escapeHtml(session)}</td>
+                        <td class="px-6 py-3">${levelBadge(l.level)}</td>
+                        <td class="px-6 py-3 text-gray-700 break-all">${escapeHtml(msg)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadSessionsForFilter() {
+            try {
+                const res = await fetchAPI('/sessions');
+                const data = await res.json();
+                sessionsForFilter = Array.isArray(data) ? data : [];
+                const sel = document.getElementById('filterSession');
+                const current = sel.value;
+                sel.innerHTML = '<option value="">All sessions</option>' + sessionsForFilter.map(s => `<option value="${s.sessionId}">${s.sessionId}</option>`).join('');
+                if (current) sel.value = current;
+            } catch (_) {}
+        }
+
+        async function loadLogs() {
+            await loadSessionsForFilter();
+            // No /logs API in backend yet - show empty state with optional mock for demo
+            const res = await fetchAPI('/logs').catch(() => null);
+            if (res && res.ok) {
+                const data = await res.json();
+                allLogs = Array.isArray(data) ? data : data.logs || [];
+            } else {
+                allLogs = [];
+            }
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const session = document.getElementById('filterSession').value;
+            const level = document.getElementById('filterLevel').value;
+            const search = document.getElementById('searchLogs').value.trim();
+            renderLogs(allLogs, session, level, search);
+        }
+
+        document.getElementById('filterSession').addEventListener('change', applyFilters);
+        document.getElementById('filterLevel').addEventListener('change', applyFilters);
+        document.getElementById('searchLogs').addEventListener('input', function () { applyFilters(); });
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        loadLogs();
+    </script>
+</body>
+</html>

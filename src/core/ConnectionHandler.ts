@@ -8,6 +8,7 @@ import makeWASocket, {
 } from 'libzapitu-rf';
 import { Boom } from '@hapi/boom';
 import { WhatsAppConfig, ConnectionState, SessionInfo, ILogger } from '../types';
+import { createSocketLogger } from '../utils/socketLogger';
 import { SessionManager } from './SessionManager';
 import { WhatsAppClient } from './WhatsAppClient'; // Para emitir eventos
 
@@ -43,14 +44,17 @@ export class ConnectionHandler {
 
             this.logger.info(`Using WA version v${version.join('.')}, isLatest: ${isLatest}`);
 
+            // Logger que trata erros de descriptografia (PreKey/session) como warn e reduz ruído
+            const socketLogger = createSocketLogger(this.logger) as any;
+
             // Configuração do Socket
             const socketConfig: UserFacingSocketConfig = {
                 version,
-                logger: this.logger as any, // Pino logger compatible
+                logger: socketLogger,
                 printQRInTerminal: this.config.qrcode?.terminal || false,
                 auth: {
                     creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, this.logger as any),
+                    keys: makeCacheableSignalKeyStore(state.keys, socketLogger),
                 },
                 browser: [
                     'WA-MODULES',
@@ -89,6 +93,42 @@ export class ConnectionHandler {
                         }
                     }
                     this.client.emit('message', m);
+                }
+            });
+
+            // Atualiza cache de contatos quando o usuário muda nome/foto
+            this.socket.ev.on('contacts.update', async (updates: Partial<{ id: string; name?: string; notify?: string }>[]) => {
+                if (!this.config.storage.saveContact) return;
+                for (const u of updates) {
+                    if (!u?.id) continue;
+                    try {
+                        await this.config.storage.saveContact(this.config.sessionId, {
+                            id: u.id,
+                            ...(u.name != null && { name: u.name }),
+                            ...(u.notify != null && { pushName: u.notify })
+                        });
+                    } catch (e) {
+                        this.logger.error('Failed to save contact update', e);
+                    }
+                }
+            });
+
+            // Atualiza cache de grupos/comunidades quando nome ou dados mudam
+            this.socket.ev.on('groups.update', async (updates: Partial<{ id: string; subject?: string; isCommunity?: boolean; isCommunityAnnounce?: boolean; linkedParent?: string }>[]) => {
+                if (!this.config.storage.saveGroupProfile) return;
+                for (const g of updates) {
+                    if (!g?.id) continue;
+                    try {
+                        await this.config.storage.saveGroupProfile(this.config.sessionId, {
+                            id: g.id,
+                            ...(g.subject != null && { name: g.subject }),
+                            ...(g.isCommunity != null && { isCommunity: g.isCommunity }),
+                            ...(g.isCommunityAnnounce != null && { isCommunityAnnounce: g.isCommunityAnnounce }),
+                            ...(g.linkedParent != null && { linkedParent: g.linkedParent })
+                        });
+                    } catch (e) {
+                        this.logger.error('Failed to save group update', e);
+                    }
                 }
             });
 

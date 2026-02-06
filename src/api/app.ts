@@ -14,6 +14,7 @@ import { MessageController } from './controllers/MessageController';
 import { WebhookController } from './controllers/WebhookController';
 import { AuthController } from './controllers/AuthController';
 import { UserController } from './controllers/UserController';
+import { createAuthHook } from './authHook';
 import { sessionRoutes } from './routes/session.routes';
 import { messageRoutes } from './routes/message.routes';
 import { webhookRoutes } from './routes/webhook.routes';
@@ -149,11 +150,13 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     const authController = new AuthController(prisma);
     const userController = new UserController(prisma);
 
+    const authHook = createAuthHook(prisma);
+
     // Register Routes
-    await server.register(sessionRoutes, { controller: sessionController });
-    await server.register(messageRoutes, { controller: messageController });
-    await server.register(webhookRoutes, { controller: webhookController });
-    await server.register(authRoutes, { authController, userController });
+    await server.register(sessionRoutes, { controller: sessionController, authHook });
+    await server.register(messageRoutes, { controller: messageController, authHook });
+    await server.register(webhookRoutes, { controller: webhookController, authHook });
+    await server.register(authRoutes, { authController, userController, authHook });
 
     // Health Check
     server.get('/health', {
@@ -175,6 +178,52 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     server.decorate('initDefaultSession', async (sessionId: string) => {
         const client = getSession(sessionId, true);
         await client.connect();
+    });
+
+    /**
+     * Restaura sessões que pertencem a algum usuário (UserSession) e possuem credenciais no banco.
+     */
+    server.decorate('restoreSessions', async () => {
+        try {
+            const ownedRows = await (prisma as any).userSession.findMany({
+                select: { sessionId: true },
+                distinct: ['sessionId']
+            });
+            const ownedSessionIds = new Set<string>(ownedRows.map((r: { sessionId: string }) => r.sessionId));
+            if (ownedSessionIds.size === 0) {
+                server.log.info('No user sessions to restore');
+                return;
+            }
+            const toRestoreIds = Array.from(ownedSessionIds) as string[];
+            const withCreds = await prisma.session.findMany({
+                where: {
+                    sessionId: { in: toRestoreIds },
+                    type: 'creds',
+                    id: 'default'
+                },
+                select: { sessionId: true }
+            });
+            const sessionIds = [...new Set(withCreds.map((r) => r.sessionId))];
+            if (sessionIds.length === 0) {
+                server.log.info('No persisted sessions with credentials to restore');
+                return;
+            }
+            server.log.info({ count: sessionIds.length, sessionIds }, 'Restoring WhatsApp sessions...');
+            const results = await Promise.allSettled(
+                sessionIds.map(async (sessionId) => {
+                    const client = getSession(sessionId, false);
+                    await client.connect();
+                    server.log.info({ sessionId }, 'Session restored');
+                })
+            );
+            results.forEach((r, i) => {
+                if (r.status === 'rejected') {
+                    server.log.warn({ sessionId: sessionIds[i], err: r.reason }, 'Session restore failed');
+                }
+            });
+        } catch (err) {
+            server.log.error({ err }, 'Error restoring sessions');
+        }
     });
 
     return server;

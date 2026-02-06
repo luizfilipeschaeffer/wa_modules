@@ -30,6 +30,7 @@ import {
 import { DefaultLogger, isValidSessionId } from '../utils';
 import { ConnectionHandler } from './ConnectionHandler';
 import { SessionManager } from './SessionManager';
+import { readFile } from 'fs/promises';
 import { WASocket } from 'libzapitu-rf';
 
 /**
@@ -242,9 +243,27 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
      */
     async sendMedia(options: SendMediaOptions): Promise<MessageResult> {
         this.logger.debug('Sending media message', options);
+        const socket = this.getSocket();
 
-        // TODO: Implementar
-        throw new Error('sendMedia not yet implemented');
+        const jid = this.formatPhoneNumber(options.to);
+        const mediaBuffer = Buffer.isBuffer(options.media)
+            ? options.media
+            : await readFile(options.media);
+
+        const content: Record<string, unknown> = {
+            [options.type]: mediaBuffer,
+            caption: options.caption ?? ''
+        };
+        if (options.mimetype) content.mimetype = options.mimetype;
+        if (options.type === 'document' && options.filename) content.fileName = options.filename;
+
+        const result = await socket.sendMessage(jid, content as any);
+        return {
+            success: true,
+            messageId: result?.key?.id || '',
+            timestamp: (result?.messageTimestamp as number) || Date.now(),
+            message: {} as Message
+        };
     }
 
     /**
@@ -380,13 +399,18 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
     }
 
     /**
-     * Busca foto de perfil
+     * Busca foto de perfil (contato ou grupo). jid pode ser número@s.whatsapp.net ou id@g.us
      */
-    async getProfilePicture(phoneNumber: string): Promise<string | null> {
-        this.logger.debug('Getting profile picture', { phoneNumber });
-
-        // TODO: Implementar
-        throw new Error('getProfilePicture not yet implemented');
+    async getProfilePicture(jid: string): Promise<string | null> {
+        this.logger.debug('Getting profile picture', { jid });
+        const socket = this.getSocket();
+        const fullJid = jid.includes('@') ? jid : `${jid}@s.whatsapp.net`;
+        try {
+            const url = await socket.profilePictureUrl(fullJid, 'image', 10_000);
+            return url || null;
+        } catch {
+            return null;
+        }
     }
 
     // ========== GRUPOS ==========
@@ -402,13 +426,32 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
     }
 
     /**
-     * Busca informações do grupo
+     * Busca informações do grupo. groupId deve ser o JID completo (ex: 120363xxx@g.us)
      */
     async getGroup(groupId: string): Promise<Group> {
         this.logger.debug('Getting group info', { groupId });
-
-        // TODO: Implementar
-        throw new Error('getGroup not yet implemented');
+        const socket = this.getSocket();
+        const fullJid = groupId.includes('@g.us') ? groupId : `${groupId}@g.us`;
+        const meta = await socket.groupMetadata(fullJid);
+        return {
+            id: meta.id,
+            name: meta.subject || fullJid,
+            description: meta.desc,
+            owner: meta.owner || '',
+            createdAt: meta.creation ? new Date(meta.creation * 1000) : new Date(),
+            participants: (meta.participants || []).map((p: any) => ({
+                id: p.id || p.jid || '',
+                phoneNumber: (p.id || p.jid || '').replace(/@.*/, ''),
+                isAdmin: p.admin === 'admin' || p.admin === 'superadmin',
+                isSuperAdmin: p.admin === 'superadmin'
+            })),
+            admins: (meta.participants || []).filter((p: any) => p.admin).map((p: any) => p.id || p.jid || ''),
+            isCommunity: !!meta.isCommunity,
+            isAnnouncement: !!meta.announce,
+            linkedParent: meta.linkedParent || undefined,
+            isCommunityAnnounce: !!meta.isCommunityAnnounce,
+            profilePicture: undefined
+        };
     }
 
     /**
