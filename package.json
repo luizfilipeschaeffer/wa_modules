@@ -1,0 +1,91 @@
+{
+    "name": "wa-module",
+    "version": "0.1.0-alpha",
+    "description": "Universal WhatsApp client for Node.js - Framework-agnostic module for WhatsApp integration",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "test": "vitest",
+        "test:coverage": "vitest --coverage",
+        "lint": "eslint src --ext .ts",
+        "lint:fix": "eslint src --ext .ts --fix",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "example:prisma": "tsx examples/prisma-bot.ts",
+        "start:api": "tsx src/api/server.ts",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "whatsapp",
+        "whatsapp-api",
+        "whatsapp-bot",
+        "baileys",
+        "messaging",
+        "whatsapp-client",
+        "framework-agnostic",
+        "typescript"
+    ],
+    "author": "Luiz Filipe Schaeffer",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/luizfilipeschaeffer/wa-module"
+    },
+    "dependencies": {
+        "@fastify/cors": "^11.2.0",
+        "@fastify/swagger": "^9.6.1",
+        "@fastify/swagger-ui": "^5.2.5",
+        "eventemitter3": "^5.0.1",
+        "fastify": "^5.7.4",
+        "file-type": "^17.1.6",
+        "libzapitu-rf": "^1.0.0-alpha.9",
+        "mime-types": "^2.1.35",
+        "p-queue": "^8.0.1",
+        "pino": "^9.6.0",
+        "pino-pretty": "^13.1.3",
+        "qrcode": "^1.5.3",
+        "sharp": "^0.34.2",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "@prisma/client": "^5.22.0",
+        "@types/eventemitter3": "^1.2.0",
+        "@types/mime-types": "^2.1.4",
+        "@types/node": "^20.0.0",
+        "@types/qrcode": "^1.5.5",
+        "@types/uuid": "^9.0.8",
+        "@typescript-eslint/eslint-plugin": "^7.0.0",
+        "@typescript-eslint/parser": "^7.0.0",
+        "@whiskeysockets/baileys": "^7.0.0-rc.9",
+        "eslint": "^8.57.0",
+        "prettier": "^3.2.5",
+        "prisma": "^5.22.0",
+        "tsx": "^4.21.0",
+        "typescript": "^5.4.5",
+        "vitest": "^1.6.0"
+    },
+    "peerDependencies": {
+        "ioredis": "^5.3.2",
+        "mongodb": "^6.0.0",
+        "mysql2": "^3.9.0",
+        "pg": "^8.11.5"
+    },
+    "peerDependenciesMeta": {
+        "pg": {
+            "optional": true
+        },
+        "mongodb": {
+            "optional": true
+        },
+        "mysql2": {
+            "optional": true
+        },
+        "ioredis": {
+            "optional": true
+        }
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

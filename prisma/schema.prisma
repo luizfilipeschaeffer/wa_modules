@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Armazena credenciais e chaves da sessão (Auth State)
+model Session {
+  pkId      String   @id @default(uuid())
+  sessionId String
+  id        String
+  type      String
+  data      String   @db.Text // JSON stringified
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sessionId, type, id])
+  @@index([sessionId])
+}
+
+// Armazenamento de Mensagens
+model Message {
+  id          String   @id // Message ID do WhatsApp
+  sessionId   String
+  chatId      String
+  sender      String
+  fromMe      Boolean
+  timestamp   DateTime
+  type        String
+  body        String?  @db.Text
+  jsonData    String   @db.Text // Dados brutos da mensagem
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId, chatId])
+  @@index([timestamp])
+}
+
+// Contatos
+model Contact {
+  id             String   @id // JID
+  sessionId      String
+  name           String?
+  pushName       String?
+  profilePicture String?
+  isBlocked      Boolean  @default(false)
+  
+  updatedAt      DateTime @updatedAt
+
+  @@unique([sessionId, id])
+}
+
+// Configuração de Webhooks para integração externa
+model Webhook {
+  id        String   @id @default(uuid())
+  sessionId String
+  url       String   // URL para enviar o POST
+  events    String[] // Array de eventos: ['message', 'connection', 'qr']
+  enabled   Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+}
