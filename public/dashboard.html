@@ -78,6 +78,14 @@
             background: #d32f2f;
         }
 
+        .btn-success {
+            background: #2196F3;
+        }
+
+        .btn-success:hover {
+            background: #1976D2;
+        }
+
         .btn-sm {
             padding: 4px 8px;
             font-size: 0.8rem;
@@ -168,6 +176,34 @@
         </div>
     </div>
 
+    <!-- Send Message Modal -->
+    <div id="sendMessageModal" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <h3>Send Message</h3>
+            <p id="sendSessionId" style="color: #666; font-size: 0.9rem;"></p>
+
+            <div style="margin: 1rem 0;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Phone Number:</label>
+                <input type="text" id="phoneNumber" placeholder="5548996846044"
+                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                <small style="color: #666;">Format: Country code + number (e.g., 5548996846044)</small>
+            </div>
+
+            <div style="margin: 1rem 0;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Message:</label>
+                <textarea id="messageText" rows="4" placeholder="Type your message here..."
+                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+
+            <div id="sendStatus" style="display: none; padding: 0.75rem; border-radius: 4px; margin: 1rem 0;"></div>
+
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="sendTestMessage()">Send</button>
+                <button class="btn btn-danger" onclick="closeModal('sendMessageModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -206,6 +242,7 @@
                                 <td style="display: flex; gap: 0.5rem;">
                                     ${s.status === 'active'
                     ? `<button class="btn btn-sm btn-primary" onclick="viewMessages('${s.sessionId}')">Show</button>
+                       <button class="btn btn-sm btn-success" onclick="showSendMessage('${s.sessionId}')">Send</button>
                        <button class="btn btn-sm btn-danger" onclick="disconnect('${s.sessionId}')">Logout</button>`
                     : `<button class="btn btn-sm btn-primary" onclick="viewQr('${s.sessionId}')">Connect</button>
                        <button class="btn btn-sm btn-danger" onclick="deleteSession('${s.sessionId}')">Delete</button>`
@@ -419,6 +456,76 @@
             } catch (err) {
                 console.error('Error loading messages:', err);
                 // Don't show error during polling, only on first load
+            }
+        }
+
+        let currentSendSessionId = null;
+
+        function showSendMessage(sessionId) {
+            currentSendSessionId = sessionId;
+            document.getElementById('sendSessionId').textContent = `Session: ${sessionId}`;
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('messageText').value = '';
+            document.getElementById('sendStatus').style.display = 'none';
+            document.getElementById('sendMessageModal').style.display = 'flex';
+        }
+
+        async function sendTestMessage() {
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const message = document.getElementById('messageText').value.trim();
+            const statusDiv = document.getElementById('sendStatus');
+
+            if (!phone) {
+                statusDiv.textContent = '⚠️ Please enter a phone number';
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#fff3cd';
+                statusDiv.style.color = '#856404';
+                return;
+            }
+
+            if (!message) {
+                statusDiv.textContent = '⚠️ Please enter a message';
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#fff3cd';
+                statusDiv.style.color = '#856404';
+                return;
+            }
+
+            try {
+                statusDiv.textContent = '📤 Sending...';
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#d1ecf1';
+                statusDiv.style.color = '#0c5460';
+
+                const res = await fetchAPI(`/session/${currentSendSessionId}/message/text`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to: phone, message })
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.message || 'Failed to send message');
+                }
+
+                const result = await res.json();
+
+                statusDiv.textContent = '✅ Message sent successfully!';
+                statusDiv.style.background = '#d4edda';
+                statusDiv.style.color = '#155724';
+
+                // Clear form after 2 seconds
+                setTimeout(() => {
+                    document.getElementById('phoneNumber').value = '';
+                    document.getElementById('messageText').value = '';
+                    statusDiv.style.display = 'none';
+                }, 2000);
+
+            } catch (err) {
+                statusDiv.textContent = `❌ Error: ${err.message}`;
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
             }
         }
 

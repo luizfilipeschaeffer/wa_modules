@@ -89,7 +89,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     const prisma = new PrismaClient();
     const activeSessions = new Map<string, WhatsAppClient>();
 
-    const getSession = (sessionId: string, _enableTerminalQr: boolean = false): WhatsAppClient => {
+    const getSession = (sessionId: string, enableTerminalQr: boolean = false): WhatsAppClient => {
         if (activeSessions.has(sessionId)) {
             return activeSessions.get(sessionId)!;
         }
@@ -103,7 +103,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
                 retryInterval: 3000
             },
             qrcode: {
-                terminal: false
+                terminal: enableTerminalQr
             },
             messages: {
                 syncFullHistory: false
@@ -114,8 +114,20 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         new WebhookService(client, prisma);
 
         // Listeners padrão com tipagem explícita
-        client.on('qr', async (_qr: string) => {
+        client.on('qr', async (qr: string) => {
             server.log.info({ sessionId }, 'QR Code received (Scan required)');
+            
+            // Se terminal QR está habilitado, exibe no console
+            if (enableTerminalQr) {
+                const qrcodeTerminal = require('qrcode-terminal');
+                console.log('\n' + '='.repeat(50));
+                console.log(`📱 QR CODE for session: ${sessionId}`);
+                console.log('='.repeat(50));
+                qrcodeTerminal.generate(qr, { small: true });
+                console.log('='.repeat(50));
+                console.log('Scan this QR code with WhatsApp to connect');
+                console.log('='.repeat(50) + '\n');
+            }
         });
 
         client.on('connected', (info: any) => {

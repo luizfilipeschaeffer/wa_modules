@@ -11,15 +11,11 @@ const start = async () => {
         console.log('==================================================');
         console.log('API Address: http://localhost:3000');
         console.log('Swagger UI:  http://localhost:3000/docs');
+        console.log('Dashboard:   http://localhost:3000/dashboard.html');
+        console.log('==================================================');
+        console.log('🔐 Authentication Required');
+        console.log('   Login: admin@admin.com / admin');
         console.log('==================================================\n');
-
-        const DEFAULT_SESSION = process.env.DEFAULT_SESSION_ID || 'main-session';
-        console.log(`🚀 Initializing default session: "${DEFAULT_SESSION}"...\n`);
-
-        // Access customized decoration or logic
-        if (server.hasDecorator('initDefaultSession')) {
-            await (server as any).initDefaultSession(DEFAULT_SESSION);
-        }
 
     } catch (err) {
         console.error(err);

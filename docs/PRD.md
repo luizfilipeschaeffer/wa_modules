@@ -27,6 +27,91 @@ Um módulo npm standalone baseado na implementação do Ticketz, com:
 - TypeScript com tipagem completa
 
 
+### 1.4 Status de Implementação Atual
+
+> **Última Atualização**: 2026-02-06  
+> **Versão**: 0.5.0-alpha  
+> **Completude Geral**: ~45%
+
+#### ✅ Implementado (62% dos métodos core)
+
+**Conexão e Sessões**
+- Conexão e gerenciamento de sessões
+- QR Code generation e autenticação
+- Reconexão automática
+- Multi-sessão
+
+**Mensagens**
+- Envio/recebimento de mensagens de texto
+- Envio de mídia (imagem, vídeo, áudio, documento)
+- Mensagens interativas (listas e botões)
+- Localização e contatos (vCard)
+- Reações, edição e exclusão de mensagens
+- Reply e forward
+
+**Contatos e Grupos**
+- Operações básicas de contatos
+- Criação e listagem de grupos
+- Adicionar participantes
+- Atualizar nome do grupo
+- Sair de grupos
+
+**Status/Stories**
+- Postar status
+- Listar status de contatos
+
+**Infraestrutura**
+- API REST com Fastify
+- Sistema de webhooks
+- Armazenamento PostgreSQL via Prisma
+- Autenticação de usuários (JWT)
+- Documentação Swagger UI
+- Suporte Docker
+
+#### 🟡 Parcialmente Implementado
+
+**Grupos Avançados**
+- ❌ Promover/rebaixar administradores
+- ❌ Remover participantes
+- ❌ Gerenciar convites
+- ❌ Atualizar descrição e foto
+
+**Storage**
+- ✅ PostgreSQL (via Prisma)
+- ✅ MemoryStorage
+- ❌ FileStorage, MongoDB, MySQL, Redis
+
+#### ❌ Não Implementado
+
+**Presença**
+- Indicadores de digitação (typing)
+- Indicadores de gravação (recording)
+- Status online/offline
+
+**Contatos Avançados**
+- Bloqueio/desbloqueio de contatos
+
+**Arquitetura**
+- Separação em services dedicados (MessageService, MediaService, etc.)
+- Sistema de plugins (IPlugin)
+- Cache layer (Redis)
+- Fila de mensagens
+- Rate limiting
+
+**Testes**
+- Testes unitários
+- Testes de integração
+- Testes E2E
+
+**Documentação Completa**
+- API Reference detalhado
+- Guia de eventos
+- Guia de plugins
+- Troubleshooting guide
+
+> ⚠️ **Nota Arquitetural**: A implementação atual não separa os services conforme planejado. Toda a lógica está integrada em `WhatsAppClient.ts`. Refatoração futura deve extrair services dedicados para melhor manutenibilidade.
+
+
 ## 2. Arquitetura do Módulo
 
 ### 2.1 Estrutura de Diretórios
@@ -111,6 +196,40 @@ wa-module/
 
 ### 2.2 Camadas da Arquitetura
 
+#### 2.2.1 Arquitetura Atual (Implementada)
+
+```
+┌─────────────────────────────────────────────┐
+│         Aplicação do Usuário                │
+│              (Fastify API)                  │
+└─────────────────┬───────────────────────────┘
+                  │
+┌─────────────────▼───────────────────────────┐
+│           Controllers Layer                  │
+│  Session │ Message │ Auth │ Webhook         │
+└─────────────────┬───────────────────────────┘
+                  │
+┌─────────────────▼───────────────────────────┐
+│      WhatsAppClient (Monolítico) ✅         │
+│  Toda lógica de services integrada          │
+│  - Messages  - Media  - Contacts            │
+│  - Groups    - Status                       │
+└─────────────────┬───────────────────────────┘
+                  │
+┌─────────────────▼───────────────────────────┐
+│    ConnectionHandler + SessionManager ✅    │
+└─────────────────┬───────────────────────────┘
+                  │
+┌─────────────────▼───────────────────────────┐
+│         libzapitu-rf (Baileys Fork) ✅      │
+│         WhatsApp Web Protocol               │
+└─────────────────────────────────────────────┘
+```
+
+> ⚠️ **Divergência Arquitetural**: A implementação atual não separa os services em classes dedicadas. Toda a lógica está em `WhatsAppClient.ts` (~500 linhas). Isso funciona mas dificulta manutenção e testes.
+
+#### 2.2.2 Arquitetura Planejada (PRD Original)
+
 ```
 ┌─────────────────────────────────────────────┐
 │         Aplicação do Usuário                │
@@ -123,7 +242,7 @@ wa-module/
 └─────────────────┬───────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────┐
-│              Services Layer                  │
+│              Services Layer ❌               │
 │  MessageService │ MediaService │ etc.       │
 └─────────────────┬───────────────────────────┘
                   │
@@ -137,6 +256,8 @@ wa-module/
 │         WhatsApp Web Protocol               │
 └─────────────────────────────────────────────┘
 ```
+
+> 📋 **Refatoração Futura**: Extrair services dedicados para melhor separação de responsabilidades e testabilidade.
 
 
 ## 3. Especificações Técnicas
@@ -223,10 +344,11 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
     return this.connectionHandler.getState();
   }
 
-  // ========== MENSAGENS ==========
+  // ========== MENSAGENS ========== ✅ IMPLEMENTADO
 
   /**
    * Envia mensagem de texto
+   * @status ✅ Implementado
    */
   async sendText(options: SendTextOptions): Promise<MessageResult> {
     return this.messageService.sendText(options);
@@ -311,6 +433,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Envia indicador de gravação de áudio
+   * @status ❌ Não Implementado
    */
   async sendRecording(chatId: string, duration?: number): Promise<void> {
     return this.presenceService.sendRecording(chatId, duration);
@@ -318,6 +441,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Envia indicador de digitação
+   * @status ❌ Não Implementado
    */
   async sendTyping(chatId: string, duration?: number): Promise<void> {
     return this.presenceService.sendTyping(chatId, duration);
@@ -325,12 +449,13 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Define presença (online/offline)
+   * @status ❌ Não Implementado
    */
   async setPresence(presence: 'available' | 'unavailable'): Promise<void> {
     return this.presenceService.setPresence(presence);
   }
 
-  // ========== CONTATOS ==========
+  // ========== CONTATOS ========== ✅ IMPLEMENTADO
 
   /**
    * Busca contato por número
@@ -362,6 +487,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Bloqueia contato
+   * @status ❌ Não Implementado
    */
   async blockContact(phoneNumber: string): Promise<void> {
     return this.contactService.block(phoneNumber);
@@ -369,12 +495,13 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Desbloqueia contato
+   * @status ❌ Não Implementado
    */
   async unblockContact(phoneNumber: string): Promise<void> {
     return this.contactService.unblock(phoneNumber);
   }
 
-  // ========== GRUPOS ==========
+  // ========== GRUPOS ========== 🟡 PARCIAL
 
   /**
    * Cria grupo
@@ -409,6 +536,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Remove participantes do grupo
+   * @status ❌ Não Implementado
    */
   async removeGroupParticipants(
     groupId: string, 
@@ -419,6 +547,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Promove participantes a admin
+   * @status ❌ Não Implementado
    */
   async promoteGroupParticipants(
     groupId: string, 
@@ -429,6 +558,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Remove admin de participantes
+   * @status ❌ Não Implementado
    */
   async demoteGroupParticipants(
     groupId: string, 
@@ -446,6 +576,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Atualiza descrição do grupo
+   * @status ❌ Não Implementado
    */
   async updateGroupDescription(
     groupId: string, 
@@ -456,6 +587,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Atualiza foto do grupo
+   * @status ❌ Não Implementado
    */
   async updateGroupPicture(
     groupId: string, 
@@ -473,6 +605,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Busca convite do grupo
+   * @status ❌ Não Implementado
    */
   async getGroupInviteCode(groupId: string): Promise<string> {
     return this.groupService.getInviteCode(groupId);
@@ -480,6 +613,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Revoga convite do grupo
+   * @status ❌ Não Implementado
    */
   async revokeGroupInvite(groupId: string): Promise<string> {
     return this.groupService.revokeInvite(groupId);
@@ -487,6 +621,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Entra em grupo via convite
+   * @status ❌ Não Implementado
    */
   async joinGroupViaInvite(inviteCode: string): Promise<Group> {
     return this.groupService.joinViaInvite(inviteCode);
@@ -494,6 +629,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Configura restrições do grupo
+   * @status ❌ Não Implementado
    */
   async setGroupSettings(
     groupId: string, 
@@ -502,7 +638,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
     return this.groupService.setSettings(groupId, settings);
   }
 
-  // ========== STATUS/STORIES ==========
+  // ========== STATUS/STORIES ========== 🟡 PARCIAL
 
   /**
    * Posta status (story)
@@ -520,21 +656,23 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
 
   /**
    * Visualiza status
+   * @status ❌ Não Implementado
    */
   async viewStatus(statusId: string): Promise<void> {
     return this.statusService.view(statusId);
   }
 
-  // ========== PLUGINS ==========
+  // ========== PLUGINS ========== ❌ NÃO IMPLEMENTADO
 
   /**
    * Registra plugin
+   * @status ❌ Não Implementado
    */
   use(plugin: IPlugin): void {
     plugin.install(this);
   }
 
-  // ========== UTILITÁRIOS ==========
+  // ========== UTILITÁRIOS ========== ✅ IMPLEMENTADO
 
   /**
    * Baixa mídia de mensagem
@@ -1627,66 +1765,87 @@ describe('MessageService', () => {
 
 ## 7. Roadmap de Desenvolvimento
 
-### Fase 1: Core (Semanas 1-4)
+### Fase 1: Core (Semanas 1-4) ✅ COMPLETO
 
-- [ ] Implementar WhatsAppClient básico
-- [ ] Sistema de conexão e autenticação
-- [ ] Envio/recebimento de mensagens de texto
-- [ ] Sistema de eventos
-- [ ] Storage em memória e arquivo
-- [ ] Documentação básica
-
-
-### Fase 2: Mensagens Avançadas (Semanas 5-7)
-
-- [ ] Envio de mídia (imagem, vídeo, áudio, documento)
-- [ ] Mensagens com botões
-- [ ] Listas interativas
-- [ ] Localização
-- [ ] Contatos (vCard)
-- [ ] Reações
-- [ ] Edição e exclusão
+- [x] Implementar WhatsAppClient básico
+- [x] Sistema de conexão e autenticação
+- [x] Envio/recebimento de mensagens de texto
+- [x] Sistema de eventos
+- [x] Storage em memória e PostgreSQL (via Prisma)
+- [x] Documentação básica
 
 
-### Fase 3: Contatos e Grupos (Semanas 8-10)
+### Fase 2: Mensagens Avançadas (Semanas 5-7) ✅ COMPLETO
 
-- [ ] Gerenciamento de contatos
-- [ ] Criação e administração de grupos
-- [ ] Convites de grupo
-- [ ] Foto de perfil
-- [ ] Status/Stories
-
-
-### Fase 4: Storage Adapters (Semanas 11-12)
-
-- [ ] PostgreSQL adapter
-- [ ] MySQL adapter
-- [ ] MongoDB adapter
-- [ ] Redis cache
+- [x] Envio de mídia (imagem, vídeo, áudio, documento)
+- [x] Mensagens com botões
+- [x] Listas interativas
+- [x] Localização
+- [x] Contatos (vCard)
+- [x] Reações
+- [x] Edição e exclusão
 
 
-### Fase 5: Recursos Avançados (Semanas 13-15)
+### Fase 3: Contatos e Grupos (Semanas 8-10) 🟡 PARCIAL (60%)
 
-- [ ] Sistema de plugins
-- [ ] Fila de mensagens
-- [ ] Rate limiting
-- [ ] Métricas e monitoring
-- [ ] Webhook system
-
-
-### Fase 6: Documentação e Exemplos (Semanas 16-17)
-
-- [ ] Documentação completa da API
-- [ ] Exemplos práticos
-- [ ] Guias de integração
-- [ ] Migration guide do Ticketz
+- [x] Gerenciamento de contatos
+- [x] Criação e administração de grupos (básico)
+- [ ] Convites de grupo ❌
+- [x] Foto de perfil
+- [x] Status/Stories (básico)
+- [ ] Bloqueio de contatos ❌
+- [ ] Operações avançadas de grupo (promote/demote/remove) ❌
 
 
-### Fase 7: Testes e Qualidade (Semanas 18-20)
+### Fase 4: Storage Adapters (Semanas 11-12) 🟡 PARCIAL (25%)
 
-- [ ] Testes unitários (>80% coverage)
-- [ ] Testes de integração
-- [ ] Testes E2E
+- [x] PostgreSQL adapter (via Prisma)
+- [ ] MySQL adapter ❌
+- [ ] MongoDB adapter ❌
+- [ ] Redis cache ❌
+- [ ] FileStorage ❌
+
+
+### Fase 5: Recursos Avançados (Semanas 13-15) 🟡 PARCIAL (20%)
+
+- [ ] Sistema de plugins ❌
+- [ ] Fila de mensagens ❌
+- [ ] Rate limiting ❌
+- [ ] Métricas e monitoring ❌
+- [x] Webhook system ✅
+
+
+### Fase 6: Documentação e Exemplos (Semanas 16-17) 🟡 PARCIAL (30%)
+
+- [x] Swagger UI ✅
+- [x] Getting Started ✅
+- [x] API Usage Guide ✅
+- [ ] API Reference completo ❌
+- [ ] Exemplos práticos (Express, NestJS) ❌
+- [ ] Guias de integração ❌
+- [ ] Migration guide do Ticketz ❌
+
+
+### Fase 7: Testes e Qualidade (Semanas 18-20) ❌ NÃO INICIADO
+
+- [ ] Testes unitários (>80% coverage) ❌
+- [ ] Testes de integração ❌
+- [ ] Testes E2E ❌
+- [ ] CI/CD pipeline ❌
+
+
+### Fase 8: Funcionalidades Extras Implementadas ✅
+
+> Funcionalidades adicionadas além do escopo original do PRD:
+
+- [x] Sistema de Autenticação de Usuários (JWT)
+- [x] Endpoints de Auth (register/login)
+- [x] Prisma ORM para gerenciamento de banco
+- [x] Docker e docker-compose
+- [x] Dashboard HTML para QR code
+- [x] Seed scripts para dados iniciais
+
+
 - [ ] CI/CD pipeline
 
 

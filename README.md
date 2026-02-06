@@ -6,6 +6,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
 
+---
+
+## 🚀 Quick Start
+
+**New to WA-Module?** Start here: **[Start-Here.md](Start-Here.md)** - Complete setup guide for development and production.
+
+---
+
 ## 🚀 Features
 
 - ✅ **Framework-Agnostic** - Works with Express, NestJS, Fastify, or any Node.js framework
@@ -298,11 +306,14 @@ This is an unofficial WhatsApp client. Use at your own risk. WhatsApp may ban ac
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTING.md) for details.
 
 ## 📞 Support
 
 - 📖 [Documentation](docs/)
+- 📋 [Product Requirements Document](docs/PRD.md)
+- 🐳 [Docker Guide](docs/DOCKER.md)
+- 📝 [Changelog](docs/CHANGELOG.md)
 - 🐛 [Issue Tracker](https://github.com/luizfilipeschaeffer/wa-module/issues)
 - 💬 [Discussions](https://github.com/luizfilipeschaeffer/wa-module/discussions)
 

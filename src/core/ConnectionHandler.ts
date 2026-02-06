@@ -53,8 +53,8 @@ export class ConnectionHandler {
                     keys: makeCacheableSignalKeyStore(state.keys, this.logger as any),
                 },
                 browser: [
-                    this.config.browser?.name || 'WA-Module',
-                    this.config.browser?.name || 'Chrome',
+                    'WA-MODULES',
+                    'Chrome',
                     this.config.browser?.version || '1.0.0'
                 ],
                 generateHighQualityLinkPreview: true,

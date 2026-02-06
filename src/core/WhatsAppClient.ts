@@ -100,7 +100,7 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
                 ...config.connection,
             },
             browser: {
-                name: 'WA-Module',
+                name: 'WA-MODULES',
                 version: '0.1.0',
                 ...config.browser,
             },
