@@ -46,6 +46,9 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
     private sessionManager: SessionManager;
     private connectionHandler: ConnectionHandler;
 
+    // State
+    public lastQr: string | null = null;
+
     // TODO: Futuros serviços com MessageService
 
     constructor(config: WhatsAppConfig) {
@@ -158,6 +161,18 @@ export class WhatsAppClient extends EventEmitter<WhatsAppEvents> {
      */
     getConnectionState(): ConnectionState {
         return this.connectionHandler.getState();
+    }
+
+    /**
+     * Helper para obter informações do usuário conectado
+     */
+    getUser(): any | null {
+        try {
+            const socket = this.connectionHandler.getSocket();
+            return socket?.user || null;
+        } catch (e) {
+            return null;
+        }
     }
 
     /**

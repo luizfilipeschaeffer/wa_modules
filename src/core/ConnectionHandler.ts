@@ -75,7 +75,7 @@ export class ConnectionHandler {
             this.socket.ev.on('connection.update', (update: Partial<BaileysConnectionState>) => this.handleConnectionUpdate(update));
 
             // Handler de mensagens
-            this.socket.ev.on('messages.upsert', async (m: any) => {
+            this.socket.ev.on('messages.upsert', async (m: { messages: any[], type: 'notify' | 'append' }) => {
                 if (m.type === 'notify' || m.type === 'append') {
                     // Persistência
                     if (this.config.storage.saveMessage) {
@@ -127,6 +127,7 @@ export class ConnectionHandler {
 
         // Emite evento de QR Code
         if (qr) {
+            this.client.lastQr = qr;
             this.client.emit('qr', qr);
         }
 
@@ -158,6 +159,7 @@ export class ConnectionHandler {
 
         // Conexão aberta
         if (connection === 'open') {
+            this.client.lastQr = null;
             this.logger.info('Connection opened successfully');
             this.reconnectAttempts = 0;
             this.isConnecting = false;

@@ -2,17 +2,55 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
-    container_name: wa-module-postgres
-    ports:
-      - '5432:5432'
+    image: postgres:16-alpine
+    container_name: wa_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: whatsapp
-      POSTGRES_PASSWORD: whatsapp_password
-      POSTGRES_DB: whatsapp_module
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: whatsapp_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wa_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/whatsapp_db
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
+      DEFAULT_SESSION_ID: ${DEFAULT_SESSION_ID:-main-session}
+      NODE_ENV: production
+    volumes:
+      # Persist WhatsApp session data
+      - wa_sessions:/app/.wa-sessions
+      # Persist uploaded files
+      - wa_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:
+    driver: local
+  wa_sessions:
+    driver: local
+  wa_uploads:
+    driver: local

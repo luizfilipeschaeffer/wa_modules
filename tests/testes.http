@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:3000
+@sessionId = main-session
+@webhookId = YOUR_WEBHOOK_ID_HERE
+@phoneNumber = 5511999999999
+
+### 1. Sistema - Health Check
+GET {{baseUrl}}/health
+
+### 2. Sessões - Listar todas as sessões
+GET {{baseUrl}}/sessions
+
+### 3. Sessões - Criar nova sessão (Novo Dispositivo)
+POST {{baseUrl}}/sessions
+
+### 4. Sessões - Filtrar sessões ativas
+GET {{baseUrl}}/sessions?status=active
+
+### 4. Sessões - Filtrar por número de telefone
+GET {{baseUrl}}/sessions?phoneNumber={{phoneNumber}}
+
+### 5. Sessão - Iniciar Conexão
+POST {{baseUrl}}/session/{{sessionId}}/connect
+
+### 6. Sessão - Obter Status
+GET {{baseUrl}}/session/{{sessionId}}/status
+
+### 7. Sessão - Obter QR Code (HTML)
+GET {{baseUrl}}/session/{{sessionId}}/qr-code
+
+### 8. Mensagem - Enviar Texto
+POST {{baseUrl}}/session/{{sessionId}}/message/text
+Content-Type: application/json
+
+{
+  "to": "{{phoneNumber}}",
+  "message": "Olá! Teste de envio via API wa_modules 🚀"
+}
+
+### 9. Webhooks - Registrar Webhook
+POST {{baseUrl}}/session/{{sessionId}}/webhooks
+Content-Type: application/json
+
+{
+  "url": "http://localhost:4000/webhook",
+  "events": ["message", "connection"]
+}
+
+### 10. Webhooks - Listar Webhooks
+GET {{baseUrl}}/session/{{sessionId}}/webhooks
+
+### 11. Webhooks - Deletar Webhook (Substitua o ID)
+DELETE {{baseUrl}}/session/{{sessionId}}/webhooks/{{webhookId}}
+
+### 12. Sessão - Logout (Resetar/Limpar Sessão)
+POST {{baseUrl}}/session/{{sessionId}}/logout

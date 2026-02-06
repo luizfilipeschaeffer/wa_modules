@@ -46,9 +46,10 @@ export class WebhookService {
 
             // Dispara requisições em paralelo (sem await para não bloquear o bot)
             hooks.forEach((hook: any) => {
-                this.sendWebhook(hook.url, event, payload).catch(err =>
-                    console.error(`Webhook error [${hook.url}]:`, err)
-                );
+                this.sendWebhook(hook.url, event, payload).catch(err => {
+                    const errorMsg = err instanceof Error ? err.message : String(err);
+                    console.warn(`[Webhook Warning] Failed to send '${event}' to '${hook.url}': ${errorMsg}`);
+                });
             });
 
         } catch (error) {

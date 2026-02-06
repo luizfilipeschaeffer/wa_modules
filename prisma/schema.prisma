@@ -55,6 +55,7 @@ model Contact {
   @@unique([sessionId, id])
 }
 
+
 // Configuração de Webhooks para integração externa
 model Webhook {
   id        String   @id @default(uuid())
@@ -68,3 +69,16 @@ model Webhook {
 
   @@index([sessionId])
 }
+
+// Usuários do Sistema
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hash
+  name      String?
+  role      String   @default("admin") // admin, user
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
